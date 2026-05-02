@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "strict": true,
+    "outDir": "server/dist",
+    "rootDir": "server",
+    "resolveJsonModule": true,
+    "declaration": true,
+    "sourceMap": true
+  },
+  "include": [
+    "server/src",
+    "server/prisma/prisma.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "server/dist",
+    "client"
+  ]
+}

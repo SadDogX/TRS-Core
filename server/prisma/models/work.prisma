@@ -1,0 +1,43 @@
+model Work {
+  id           String           @id @default(uuid())
+  name         String           @unique
+  status       String           @default("forming")
+  wellId       String // скважина, пока строкой
+
+  rolesId     Int
+  roles       Roles  @relation("WorkRoles",fields: [rolesId],references: [id])
+
+  workTypeId   Int 
+  workType     WorkType? @relation("WorkTypes",fields: [workTypeId],references: [id])
+  
+  teamId       String
+  team         Team             @relation("TeamWork",fields: [teamId], references: [id])
+  supervisorId String
+  supervisor   Employee         @relation("WorkSupervisor", fields: [supervisorId], references: [id])
+  assignments  WorkAssignment[]
+}
+
+model WorkAssignment {
+  id          String    @id @default(uuid())
+  workId      String
+  work        Work      @relation(fields: [workId], references: [id])
+  employeeId  String
+  employee    Employee  @relation(fields: [employeeId], references: [id])
+  role        String // "worker" или "supervisor"
+  permissions String? // JSON с правами
+  startDate   DateTime  @default(now())
+  endDate     DateTime?
+}
+
+model WorkType{
+  id Int @id @default(autoincrement())
+  name String @unique // Casing, tubing, PNA, Drilling
+  work Work[] @relation("WorkTypes")
+}
+
+model Roles{
+  id  Int @id @default(autoincrement())
+  name String @unique //Worker, CrewChief
+
+  work Work[] @relation("WorkRoles")
+}

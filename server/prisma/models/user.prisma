@@ -1,0 +1,36 @@
+model Employee {
+  id           String  @id @default(uuid())
+  employeeId   String  @unique
+  fullName     String
+  email        String  @unique @default("empty")
+  phone        String  @unique @default("empty")
+  passwordHash String
+  role         String  @default("worker") // admin, coordinator, worker
+  isBlocked    Boolean @default(false)
+
+  baseId String?
+  base   Base?   @relation(fields: [baseId], references: [id])
+
+  positionId Int      @default(1)
+  postion    Position @relation("EmplPostion", fields: [positionId], references: [id])
+
+  teamMemberships TeamMember[]
+  workAssignments WorkAssignment[]
+  workSupervised  Work[]           @relation("WorkSupervisor")
+}
+
+model Position {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  employee Employee[] @relation("EmplPostion")
+}
+
+model Base {
+  id        String     @id @default(uuid())
+  name      String
+  city      String
+  address   String?
+  employees Employee[]
+  // equipment Equipment[]
+}
