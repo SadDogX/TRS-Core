@@ -1,7 +1,7 @@
 {
     "prisma.pinToPrisma6": false,
     "files.exclude": {
-        "**/node_modules": true
+        "**/node_modules": false
     },
     "search.exclude": {
         "**/node_modules": true

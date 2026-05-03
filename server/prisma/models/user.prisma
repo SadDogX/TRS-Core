@@ -7,7 +7,12 @@ model Employee {
   passwordHash String
   role         String  @default("worker") // admin, coordinator, worker
   isBlocked    Boolean @default(false)
+  /* Default fields---------------------------------------------- */
+  isDeleted    Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
 
+/* -------------------------------------------------------------------------- */
   baseId String?
   base   Base?   @relation(fields: [baseId], references: [id])
 
@@ -22,7 +27,11 @@ model Employee {
 model Position {
   id   Int    @id @default(autoincrement())
   name String @unique
-
+  /* Default fields---------------------------------------------- */
+  isDeleted    Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
+/* -------------------------------------------------------------------------- */
   employee Employee[] @relation("EmplPostion")
 }
 
@@ -31,6 +40,12 @@ model Base {
   name      String
   city      String
   address   String?
+  /* Default fields---------------------------------------------- */
+  isDeleted    Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
+  /* -------------------------------------------------------------------------- */
   employees Employee[]
   // equipment Equipment[]
+  
 }

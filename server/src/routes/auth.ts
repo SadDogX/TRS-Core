@@ -13,7 +13,6 @@ router.post('/login', async (req: Request, res: Response) => {
     if (!employeeId || !password) {
       return res.status(400).json({ error: 'EmployeeID и пароль обязательны' });
     }
-
     const employee = await prisma.employee.findUnique({
       where: { employeeId },
     });

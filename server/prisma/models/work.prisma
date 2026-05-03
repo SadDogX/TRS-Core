@@ -3,7 +3,11 @@ model Work {
   name         String           @unique
   status       String           @default("forming")
   wellId       String // скважина, пока строкой
-
+  /* Default fields---------------------------------------------- */
+  isDeleted    Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
+  /* -------------------------------------------------------------------------- */
   rolesId     Int
   roles       Roles  @relation("WorkRoles",fields: [rolesId],references: [id])
 
@@ -27,17 +31,29 @@ model WorkAssignment {
   permissions String? // JSON с правами
   startDate   DateTime  @default(now())
   endDate     DateTime?
+    /* Default fields---------------------------------------------- */
+  isDeleted    Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
 }
 
 model WorkType{
   id Int @id @default(autoincrement())
   name String @unique // Casing, tubing, PNA, Drilling
   work Work[] @relation("WorkTypes")
+    /* Default fields---------------------------------------------- */
+  isDeleted    Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
 }
 
 model Roles{
   id  Int @id @default(autoincrement())
   name String @unique //Worker, CrewChief
-
+  /* Default fields---------------------------------------------- */
+  isDeleted    Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
+  /* -------------------------------------------------------------------------- */
   work Work[] @relation("WorkRoles")
 }

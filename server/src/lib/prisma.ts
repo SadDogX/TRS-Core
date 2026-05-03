@@ -1,4 +1,5 @@
-import { PrismaClient } from '../../../node_modules/.prisma/trs-client/client';
+// import { PrismaClient } from '../../../node_modules/.prisma/client/client';
+import { PrismaClient } from '@prisma/client';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 
 const prisma = new PrismaClient({

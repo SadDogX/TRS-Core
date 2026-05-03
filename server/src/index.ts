@@ -23,13 +23,13 @@ app.use(express.json());
 app.use('/api/bases', basesRouter);
 app.use('/api/positions', postionsRouter);
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
 
 app.use('/api/auth', authRouter);
 app.use('/api/employees', employeesRouter);
 
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 async function main() {
   try {
     await prisma.$connect();
