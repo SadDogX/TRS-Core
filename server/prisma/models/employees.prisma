@@ -22,6 +22,8 @@ model Employee {
   teamMemberships TeamMember[]
   workAssignments WorkAssignment[]
   workSupervised  Work[]           @relation("WorkSupervisor")
+  team Team[] @relation("TeamCreator")
+  ledTeams Team[] @relation("MakeLeader")
 }
 
 model Position {

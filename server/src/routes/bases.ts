@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
+import { ROLES } from '../constants';
 
 const router = Router();
 
@@ -52,7 +53,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
 });
 
 // POST /api/bases — только admin и coordinator
-router.post('/', authenticate, requireRole('admin', 'coordinator'), async (req: Request, res: Response) => {
+router.post('/', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
   try {
     const { name, city, address } = req.body;
     if (!name || !city) {
@@ -69,7 +70,7 @@ router.post('/', authenticate, requireRole('admin', 'coordinator'), async (req: 
 });
 
 // PUT /api/bases/:id — только admin и coordinator
-router.put('/:id', authenticate, requireRole('admin', 'coordinator'), async (req: Request, res: Response) => {
+router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
   try {
     const { name, city, address } = req.body;
     const base = await prisma.base.update({
@@ -87,7 +88,7 @@ router.put('/:id', authenticate, requireRole('admin', 'coordinator'), async (req
 });
 
 // DELETE /api/bases/:id — только admin
-router.delete('/:id', authenticate, requireRole('admin'), async (req: Request, res: Response) => {
+router.delete('/:id/hard', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
   try {
     await prisma.base.delete({
       where: { id: req.params.id },
@@ -101,5 +102,22 @@ router.delete('/:id', authenticate, requireRole('admin'), async (req: Request, r
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
+
+router.delete('/:id', authenticate, requireRole(ROLES.ADMIN,ROLES.COORDINATOR), async (req: Request, res: Response) => {
+  try { 
+    const base=await prisma.base.update({
+      where:{id:req.params.id},
+      data:{isDeleted:true}
+    })
+    res.json({message:`База ${base} помечена на удаление`})
+  } catch (error:any) {
+    if (error.code =="P2025"){
+      console.log('База не найдена!')
+      res.json({error:"База не найдена!"})
+    }
+    console.error(error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+})
 
 export default router;

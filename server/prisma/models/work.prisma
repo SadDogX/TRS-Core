@@ -3,10 +3,6 @@ model Work {
   name         String           @unique
   status       String           @default("forming")
   wellId       String // скважина, пока строкой
-  /* Default fields---------------------------------------------- */
-  isDeleted    Boolean @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt @default(now())
   /* -------------------------------------------------------------------------- */
   rolesId     Int
   roles       Roles  @relation("WorkRoles",fields: [rolesId],references: [id])
@@ -19,6 +15,10 @@ model Work {
   supervisorId String
   supervisor   Employee         @relation("WorkSupervisor", fields: [supervisorId], references: [id])
   assignments  WorkAssignment[]
+  /* Default fields---------------------------------------------- */
+  isDeleted    Boolean @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt @default(now())
 }
 
 model WorkAssignment {
@@ -27,8 +27,7 @@ model WorkAssignment {
   work        Work      @relation(fields: [workId], references: [id])
   employeeId  String
   employee    Employee  @relation(fields: [employeeId], references: [id])
-  role        String // "worker" или "supervisor"
-  permissions String? // JSON с правами
+  role        String    @default("worker")
   startDate   DateTime  @default(now())
   endDate     DateTime?
     /* Default fields---------------------------------------------- */

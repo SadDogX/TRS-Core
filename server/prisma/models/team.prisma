@@ -1,8 +1,12 @@
 model Team {
   id       String       @id @default(uuid())
   status   String       @default("forming") // forming, active, archived
+  createdById String
+  createdBy Employee @relation("TeamCreator",fields: [createdById],references: [id])
+  
   leaderId String
-  // leader   Employee     @relation(, fields: [leaderId], references: [id])
+  leader   Employee @relation("MakeLeader",fields: [leaderId],references: [id])
+  
   members  TeamMember[]
   works    Work[] @relation("TeamWork")
   /* Default fields---------------------------------------------- */

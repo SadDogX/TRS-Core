@@ -14,7 +14,7 @@
   "include": [
     "server/src",
     "server/prisma/prisma.ts"
-  ],
+, "server/src/.ts"  ],
   "exclude": [
     "node_modules",
     "server/dist",

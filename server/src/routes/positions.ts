@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/requireRole";
+import { ROLES } from "../constants";
 
 const router = Router();
 
@@ -33,7 +34,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
 });
 
 // POST /api/positions
-router.post("/", authenticate, requireRole('admin', 'coordinator'), async (req: Request, res: Response) => {
+router.post("/", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
     try {
         const { name } = req.body;
         if (!name) {
@@ -50,7 +51,7 @@ router.post("/", authenticate, requireRole('admin', 'coordinator'), async (req: 
 });
 
 // PUT /api/positions/:id
-router.put('/:id', authenticate, requireRole('admin', 'coordinator'), async (req: Request, res: Response) => {
+router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
     try {
         const { name } = req.body;
         const position = await prisma.position.update({
@@ -68,7 +69,7 @@ router.put('/:id', authenticate, requireRole('admin', 'coordinator'), async (req
 });
 
 // DELETE /api/positions/:id
-router.delete('/:id', authenticate, requireRole('admin'), async (req: Request, res: Response) => {
+router.delete('/:id', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
     try {
         await prisma.position.delete({
             where: { id: parseInt(req.params.id) },

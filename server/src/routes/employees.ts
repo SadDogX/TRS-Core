@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
+import { ROLES } from '../constants';
 
 const router = Router();
 
@@ -12,7 +13,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     const { baseId, role, isBlocked } = req.query;
     const where: any = {};
 
-    if (req.user.role === 'worker') {
+    if (req.user.role === ROLES.WORKER) {
       where.employeeId = req.user.employeeId;
     } else {
       if (baseId) where.baseId = String(baseId);
@@ -20,7 +21,13 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       if (isBlocked !== undefined) where.isBlocked = String(isBlocked) === 'true';
     }
 
-    const employees = await prisma.employee.findMany({ where });
+    const employees = await prisma.employee.findMany(
+      { where,
+        include:{
+          postion:true
+        },
+        
+       });
     const result = employees.map(({ passwordHash, ...rest }) => rest);
     res.json(result);
   } catch (error) {
@@ -53,7 +60,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
 });
 
 // POST /api/employees — только admin
-router.post('/', authenticate, requireRole('admin'), async (req: Request, res: Response) => {
+router.post('/', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
   try {
     const { employeeId, fullName, email,phone, password, role, baseId } = req.body;
 
@@ -115,7 +122,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
     }
 
     // Админ может всё
-    if (req.user.role === 'admin') {
+    if (req.user.role === ROLES.ADMIN) {
       const { password, employeeId, ...rest } = req.body;
       const data: any = { ...rest };
 
@@ -136,7 +143,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
     }
 
     // Координатор может менять только isBlocked
-    if (req.user.role === 'coordinator') {
+    if (req.user.role === ROLES.COORDINATOR) {
       if (req.body.isBlocked !== undefined) {
         const updated = await prisma.employee.update({
           where: { employeeId: req.params.id },
@@ -151,7 +158,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
     }
 
     // Worker может обновить только свой email
-    if (req.user.role === 'worker' && req.user.employeeId === req.params.id) {
+    if (req.user.role === ROLES.WORKER && req.user.employeeId === req.params.id) {
       const { email } = req.body;
       if (email !== undefined) {
         const updated = await prisma.employee.update({
@@ -174,7 +181,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
 });
 
 // PATCH /api/employees/:id/toggle-block — toggle isBlocked (admin и coordinator)
-router.patch('/:id/toggle-block', authenticate, requireRole('admin', 'coordinator'), async (req: Request, res: Response) => {
+router.patch('/:id/toggle-block', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
   try {
     const target = await prisma.employee.findUnique({
       where: { employeeId: req.params.id },
