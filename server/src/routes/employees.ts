@@ -3,11 +3,12 @@ import bcrypt from 'bcryptjs';
 import prisma from '../lib/prisma';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
-import { ROLES } from '../constants';
+import { MSG, ROLES } from '../constants';
 
 const router = Router();
 
 // GET /api/employees
+/* -------------------------------- READ ALL -------------------------------- */
 router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
     const { baseId, role, isBlocked } = req.query;
@@ -32,10 +33,10 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     res.json(result);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
-
+/* ------------------------------- READ BY ID ------------------------------- */
 // GET /api/employees/:id
 router.get('/:id', authenticate, async (req: Request, res: Response) => {
   try {
@@ -44,48 +45,49 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
     });
 
     if (!employee) {
-      return res.status(404).json({ error: 'Сотрудник не найден' });
+      return res.status(404).json({ error: MSG.EMP_ID_WRONG });
     }
 
     if (req.user.role === 'worker' && req.user.employeeId !== req.params.id) {
-      return res.status(403).json({ error: 'Доступ запрещён' });
+      return res.status(403).json({ error: MSG.ACCESS_DENIED });
     }
 
     const { passwordHash, ...result } = employee;
     res.json(result);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    res.status(500).json({ error: MSG.SERVER_ERROR
+     });
   }
 });
-
+/* --------------------------------- CREATE --------------------------------- */
 // POST /api/employees — только admin
 router.post('/', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
   try {
     const { employeeId, fullName, email,phone, password, role, baseId } = req.body;
 
     if (!employeeId || !/^E\d{6}$/.test(employeeId)) {
-      return res.status(400).json({ error: 'Неверный формат EmployeeID (E + 6 цифр)' });
+      return res.status(400).json({ error: MSG.STR_MAIL_WRONG_FORMAT});
     }
 
     if (!password || password.length < 6) {
-      return res.status(400).json({ error: 'Пароль минимум 6 символов' });
+      return res.status(400).json({ error: MSG.STR_PASSWORD_WRONG_FORMAT });
     }
 
     const existing = await prisma.employee.findUnique({ where: { employeeId } });
     if (existing) {
-      return res.status(400).json({ error: 'Сотрудник с таким EmployeeID уже существует' });
+      return res.status(400).json({ error: MSG.EMP_ID_ALREADY_HAVE});
     }
 
     if (email) {
       const existingEmail = await prisma.employee.findUnique({ where: { email } });
       if (existingEmail) {
-        return res.status(400).json({ error: 'Email уже используется' });
+        return res.status(400).json({ error: MSG.STR_MAIL_ALREADY_HAVE });
       }
     }
 
     if (!phone) {
-        return res.status(400).json({ error: 'Телефон обязателен' });
+        return res.status(400).json({ error: MSG.REQ_FIELD_PHONE });
     }   
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -106,10 +108,10 @@ router.post('/', authenticate, requireRole(ROLES.ADMIN), async (req: Request, re
     res.status(201).json(result);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
-
+/* --------------------------------- UPDATE --------------------------------- */
 // PUT /api/employees/:id
 router.put('/:id', authenticate, async (req: Request, res: Response) => {
   try {
@@ -118,7 +120,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
     });
 
     if (!target) {
-      return res.status(404).json({ error: 'Сотрудник не найден' });
+      return res.status(404).json({ error: MSG.TEAM_ID_WRONG });
     }
 
     // Админ может всё
@@ -128,7 +130,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
 
       if (password) {
         if (password.length < 6) {
-          return res.status(400).json({ error: 'Пароль минимум 6 символов' });
+          return res.status(400).json({ error: MSG.STR_PASSWORD_WRONG_FORMAT});
         }
         data.passwordHash = await bcrypt.hash(password, 10);
       }
@@ -154,7 +156,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
         return res.json(result);
       }
 
-      return res.status(403).json({ error: 'Координатор может менять только блокировку' });
+      return res.status(403).json({ error: MSG.ACCESS_DENIED });
     }
 
     // Worker может обновить только свой email
@@ -170,16 +172,16 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
         return res.json(result);
       }
 
-      return res.status(403).json({ error: 'Недостаточно прав для изменения других полей' });
+      return res.status(403).json({ error: MSG.ACCESS_DENIED });
     }
 
-    return res.status(403).json({ error: 'Недостаточно прав' });
+    return res.status(403).json({ error: MSG.ACCESS_DENIED });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
-
+/* ------------------------------- SOFT DELETE ------------------------------ */
 // PATCH /api/employees/:id/toggle-block — toggle isBlocked (admin и coordinator)
 router.patch('/:id/toggle-block', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
   try {
@@ -188,7 +190,7 @@ router.patch('/:id/toggle-block', authenticate, requireRole(ROLES.ADMIN, ROLES.C
     });
 
     if (!target) {
-      return res.status(404).json({ error: 'Сотрудник не найден' });
+      return res.status(404).json({ error: MSG.EMP_ID_WRONG });
     }
 
     const updated = await prisma.employee.update({
@@ -199,8 +201,11 @@ router.patch('/:id/toggle-block', authenticate, requireRole(ROLES.ADMIN, ROLES.C
     res.json({ employeeId: updated.employeeId, isBlocked: updated.isBlocked });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Ошибка сервера' });
+    res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
+
+//! ------------------------------- HARD DELETE ------------------------------ */
+
 
 export default router;

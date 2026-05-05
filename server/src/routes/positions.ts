@@ -2,21 +2,26 @@ import { Router, Request, Response } from "express";
 import prisma from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/requireRole";
-import { ROLES } from "../constants";
+import { MSG, ROLES } from "../constants";
+import { log } from "node:console";
 
 const router = Router();
 
 // GET /api/positions
+/* -------------------------------- READ ALL -------------------------------- */
 router.get('/', authenticate, async (req: Request, res: Response) => {
     try {
         const positions = await prisma.position.findMany();
+        if(positions.length==0){
+            return res.json({message:MSG.TBL_IS_EMPTY})
+        }
         res.json(positions);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Ошибка при получении должностей" });
+        res.status(500).json({ error: MSG.SERVER_ERROR });
     }
 });
-
+/* ------------------------------- READ BY ID ------------------------------- */
 // GET /api/positions/:id
 router.get('/:id', authenticate, async (req: Request, res: Response) => {
     try {
@@ -24,21 +29,21 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
             where: { id: parseInt(req.params.id) },
         });
         if (!position) {
-            return res.status(404).json({ error: 'Должность не найдена' });
+            return res.status(404).json({ error: MSG.POS_ID_WRONG });
         }
         res.json(position);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ошибка при получении должности' });
+        res.status(500).json({ error: MSG.SERVER_ERROR });
     }
 });
-
+/* --------------------------------- CREATE --------------------------------- */
 // POST /api/positions
 router.post("/", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
     try {
         const { name } = req.body;
         if (!name) {
-            return res.status(400).json({ error: 'Название обязательно' });
+            return res.status(400).json({ error: MSG.REQ_POSITION });
         }
         const newPosition = await prisma.position.create({
             data: { name },
@@ -46,10 +51,10 @@ router.post("/", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), asyn
         res.status(201).json(newPosition);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Ошибка при создании должности" });
+        res.status(500).json({ error: MSG.SERVER_ERROR });
     }
 });
-
+/* --------------------------------- UPDATE --------------------------------- */
 // PUT /api/positions/:id
 router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
     try {
@@ -61,27 +66,27 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
         res.json(position);
     } catch (error: any) {
         if (error.code === 'P2025') {
-            return res.status(404).json({ error: 'Должность не найдена' });
+            return res.status(404).json({ error: MSG.POS_ID_WRONG});
         }
         console.error(error);
-        res.status(500).json({ error: "Ошибка при обновлении должности" });
+        res.status(500).json({ error: MSG.SERVER_ERROR});
     }
 });
-
+/* ------------------------------- HARD DELETE ------------------------------ */
 // DELETE /api/positions/:id
 router.delete('/:id', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
     try {
         await prisma.position.delete({
             where: { id: parseInt(req.params.id) },
         });
-        res.json({ message: "Должность удалена" });
+        res.json({ message: MSG.POS_IS_DELETED });
     } catch (error: any) {
         if (error.code === 'P2025') {
-            return res.status(404).json({ error: 'Должность не найдена' });
+            return res.status(404).json({ error: MSG.POS_ID_WRONG });
         }
         console.error(error);
-        res.status(500).json({ error: "Ошибка при удалении должности" });
+        res.status(500).json({ error: MSG.SERVER_ERROR});
     }
 });
-
+//! ------------------------------- SOFT DELETE ------------------------------ */
 export default router;
