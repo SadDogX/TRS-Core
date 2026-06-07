@@ -1,15 +1,11 @@
 model Work {
   id           String           @id @default(uuid())
   name         String           @unique
-  status       String           @default("forming")
+  status       String           @default("drift")
   wellId       String // скважина, пока строкой
-  /* -------------------------------------------------------------------------- */
-  rolesId     Int
-  roles       Roles  @relation("WorkRoles",fields: [rolesId],references: [id])
-
+  /* -----------------------------Links--------------------------------------------- */
   workTypeId   Int 
   workType     WorkType? @relation("WorkTypes",fields: [workTypeId],references: [id])
-  
   teamId       String
   team         Team             @relation("TeamWork",fields: [teamId], references: [id])
   supervisorId String
@@ -20,7 +16,7 @@ model Work {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt @default(now())
 }
-
+        
 model WorkAssignment {
   id          String    @id @default(uuid())
   workId      String
@@ -44,15 +40,4 @@ model WorkType{
   isDeleted    Boolean @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt @default(now())
-}
-
-model Roles{
-  id  Int @id @default(autoincrement())
-  name String @unique //Worker, CrewChief
-  /* Default fields---------------------------------------------- */
-  isDeleted    Boolean @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt @default(now())
-  /* -------------------------------------------------------------------------- */
-  work Work[] @relation("WorkRoles")
 }

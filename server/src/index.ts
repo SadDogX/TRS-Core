@@ -14,6 +14,8 @@ import authRouter from './routes/auth';
 import basesRouter from './routes/bases';
 import employeesRouter from './routes/employees';
 import postionsRouter from './routes/positions';
+import teamRouter from './routes/teams';
+import workRouter from './routes/work';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,6 +24,8 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/bases', basesRouter);
 app.use('/api/positions', postionsRouter);
+app.use('/api/team,',teamRouter);
+app.use('/api/work',workRouter);
 
 
 app.use('/api/auth', authRouter);

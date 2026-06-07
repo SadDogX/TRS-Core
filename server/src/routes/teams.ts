@@ -3,8 +3,6 @@ import prisma from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/requireRole";
 import { ROLES, TEAM_STATUS, MSG } from "../constants";
-import { error } from "console";
-import { json } from "stream/consumers";
 
 const router = Router()
 /* --------------------------------- Create --------------------------------- */
@@ -38,47 +36,61 @@ router.post('/', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), asyn
 
     } catch (error) {
         console.log(MSG.SERVER_ERROR)
-        res.json({ error: MSG.SERVER_ERROR })
+        res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
-router.post('/add/:id', authenticate, requireRole(ROLES.COORDINATOR, ROLES.ADMIN), async (req: Request, res: Response) => {
+router.post('/:teamId/members', authenticate, requireRole(ROLES.COORDINATOR, ROLES.ADMIN), async (req: Request, res: Response) => {
     try {
-        const { id, employeeId } = req.body
+        const { employeeId } = req.body
+        const { teamId } = req.params
+
         const employee = await prisma.employee.findUnique({ where: { employeeId: employeeId } })
         if (!employee) {
-            return res.json({ error: MSG.EMP_ID_WRONG })
+            return res.status(404).json({ error: MSG.EMP_ID_WRONG })
         }
         if (employee.isBlocked) {
-            return res.json({ error: MSG.EMP_IS_BLOCKED })
+            return res.status(400).json({ error: MSG.EMP_IS_BLOCKED })
         }
-        const team = await prisma.team.findUnique({ where: { id: id } })
+        const team = await prisma.team.findUnique({ where: { id: teamId } })
         if (!team) {
-            return res.json({ error: MSG.TEAM_ID_WRONG })
+            return res.status(400).json({ error: MSG.TEAM_ID_WRONG })
         }
-        const where: any = {}
-        if (req.user.role == ROLES.COORDINATOR && req.user.employeeId !== team.createdById) {
-            return res.json({ error: MSG.ACCESS_DENIED })
-        } else {
-            where.id = id
+        if(team.isDeleted){
+            
+            return res.status(400).json({ error: MSG.TEAM_IS_DELETED_SOFT })
         }
-        const add_employe = prisma.team.update({
-            where, data: {
-                members:{
-                    
-                }
-            }
+        if (req.user.role === ROLES.COORDINATOR && req.user.employeeId !== team.createdById) {
+            return res.status(400).json({ error: MSG.ACCESS_DENIED })
+        }
 
+        const existing = await prisma.teamMember.findFirst({
+            where:{
+                employeeId:employeeId,
+                isDeleted:false,
+                removedAt:null,
+                teamId:teamId
+            }
         })
+        if (existing){
+            return res.status(400).json({error:MSG.EMP_ALREADY_IN_TEAM})
+        }
+        const member= await prisma.teamMember.create({
+            data:{
+                employeeId:employeeId,
+                teamId:teamId
+            }
+        })
+        res.status(200).json({ message: MSG.TEAM_IS_CREATED,data:member})
     } catch (error) {
         console.log(error)
-        res.json({ error: MSG.SERVER_ERROR })
+        res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
 /* ---------------------------------- Read ---------------------------------- */
 router.get('/teams', authenticate, async (req: Request, res: Response) => {
     try {
         const user = req.user
-        if (user.role == ROLES.ADMIN) {
+        if (user.role === ROLES.ADMIN) {
             const teams = await prisma.team.findMany()
             if (teams.length === 0) {
                 console.log(MSG.TBL_IS_EMPTY)
@@ -87,7 +99,7 @@ router.get('/teams', authenticate, async (req: Request, res: Response) => {
             res.json(teams)
         }
 
-        if (user.role == ROLES.COORDINATOR) {
+        if (user.role === ROLES.COORDINATOR) {
             const teams = await prisma.team.findMany({
                 where: {
                     createdById: user.employeeId,
@@ -134,14 +146,14 @@ router.get('/teams', authenticate, async (req: Request, res: Response) => {
         }
     } catch (error) {
         console.log(error)
-        res.json({ error: MSG.SERVER_ERROR })
+        res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
 
 router.get('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
     try {
         const where: any = { id: req.params.id };
-        if (req.user.role == ROLES.COORDINATOR) {
+        if (req.user.role === ROLES.COORDINATOR) {
             where.isDeleted = false;
             where.createdById = req.user.employeeId
         }
@@ -152,7 +164,7 @@ router.get('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
         res.json(team)
     } catch (error) {
         console.log(error)
-        res.json({ error: MSG.SERVER_ERROR })
+        res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
 
@@ -165,7 +177,7 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
         })
 
         if (!target) {
-            return res.status(404).json({ error: MSG.TEAM_ID_WRONG })
+            return res.status(400).json({ error: MSG.TEAM_ID_WRONG })
         }
 
         const { leaderId, status } = req.body
@@ -177,13 +189,13 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
         })
 
         if (!leader_data) {
-            return res.status(404).json({ error: MSG.EMP_ID_WRONG })
+            return res.status(400).json({ error: MSG.EMP_ID_WRONG })
         }
         if (leader_data.isBlocked) {
-            return res.status(404).json({ error: MSG.EMP_IS_BLOCKED })
+            return res.status(400).json({ error: MSG.EMP_IS_BLOCKED })
         }
         if (leader_data.isDeleted) {
-            return res.status(404).json({ error: MSG.EMP_IS_CHECK_DELETED })
+            return res.status(400).json({ error: MSG.EMP_IS_CHECK_DELETED })
         }
 
         if (req.user.role === ROLES.COORDINATOR && target.createdById !== req.user.employeeId) {
@@ -198,25 +210,82 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
         res.json(updat_target)
     } catch (error) {
         console.log(error)
-        res.json({ error: MSG.SERVER_ERROR })
+        res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
 /* --------------------------------- Delete HARD--------------------------------- */
-router.delete('/:id', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
+router.delete('/:id/hard', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
     try {
 
-    } catch (error) {
+        await prisma.team.delete({
+            where: { id: req.params.id }
+        })
+        res.status(200).json({ message: MSG.TEAM_IS_DELETED })
+    } catch (error: any) {
+        if (error.code === "P2025") {
+            return res.status(400).json({ error: MSG.TEAM_ID_WRONG })
+        }
         console.log(error)
-        res.json({ error: MSG.SERVER_ERROR })
+        res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
-/* --------------------------------- Delete --------------------------------- */
-router.delete('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
+/* --------------------------------- Delete  Soft--------------------------------- */
+router.delete('/:id/soft', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
     try {
 
-    } catch (error) {
+        const team = await prisma.team.findFirst({
+            where: { id: req.params.id }
+        })
+
+        if (!team) {
+            return res.status(400).json({ error: MSG.TEAM_ID_WRONG })
+        }
+        if (req.user.role === ROLES.COORDINATOR && team.createdById !== req.user.employeeId) {
+            return res.status(400).json({ error: MSG.ACCESS_DENIED })
+        }
+        await prisma.team.update(
+            {
+                where: { id: req.params.id },
+                data: { isDeleted: true }
+            }
+        )
+        res.status(200).json({ message: MSG.TEAM_IS_DELETED_SOFT })
+    } catch (error: any) {
+        if (error.code === "P2025") {
+            return res.status(404).json({ error: MSG.TEAM_ID_WRONG })
+        }
+
         console.log(error)
-        res.json({ error: MSG.SERVER_ERROR })
+        res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
+
+router.patch("/:id/restore", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
+    try {
+        const team = await prisma.team.findFirst({ where: { id: req.params.id } })
+        if (!team) {
+            return res.status(400).json({ error: MSG.TEAM_ID_WRONG })
+        }
+        if (team.isDeleted) {
+            return res.status(400).json({ error: MSG.TEAM_SET_ERROR })
+        }
+        if (req.user.role === ROLES.COORDINATOR && team.createdById !== req.user.employeeId) {
+            return res.status(400).json({ error: MSG.ACCESS_DENIED })
+        }
+        await prisma.team.update({
+            where: { id: req.params.id },
+            data: { isDeleted: false }
+        })
+        res.status(200).json({ message: MSG.RES_STATUS_UPDATE })
+    }
+    catch (error: any) {
+        if (error.code === "P2025") {
+            return res.status(400).json({ error: MSG.TEAM_ID_WRONG })
+        }
+        console.log(error)
+        res.status(500).json({ error: MSG.SERVER_ERROR })
+    }
+})
+
+
 export default router

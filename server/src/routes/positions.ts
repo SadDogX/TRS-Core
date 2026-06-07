@@ -3,7 +3,8 @@ import prisma from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/requireRole";
 import { MSG, ROLES } from "../constants";
-import { log } from "node:console";
+import { error, log } from "node:console";
+import { read } from "node:fs";
 
 const router = Router();
 
@@ -12,8 +13,8 @@ const router = Router();
 router.get('/', authenticate, async (req: Request, res: Response) => {
     try {
         const positions = await prisma.position.findMany();
-        if(positions.length==0){
-            return res.json({message:MSG.TBL_IS_EMPTY})
+        if (positions.length == 0) {
+            return res.json({ message: MSG.TBL_IS_EMPTY })
         }
         res.json(positions);
     } catch (error) {
@@ -66,10 +67,10 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
         res.json(position);
     } catch (error: any) {
         if (error.code === 'P2025') {
-            return res.status(404).json({ error: MSG.POS_ID_WRONG});
+            return res.status(404).json({ error: MSG.POS_ID_WRONG });
         }
         console.error(error);
-        res.status(500).json({ error: MSG.SERVER_ERROR});
+        res.status(500).json({ error: MSG.SERVER_ERROR });
     }
 });
 /* ------------------------------- HARD DELETE ------------------------------ */
@@ -85,8 +86,41 @@ router.delete('/:id', authenticate, requireRole(ROLES.ADMIN), async (req: Reques
             return res.status(404).json({ error: MSG.POS_ID_WRONG });
         }
         console.error(error);
-        res.status(500).json({ error: MSG.SERVER_ERROR});
+        res.status(500).json({ error: MSG.SERVER_ERROR });
     }
 });
 //! ------------------------------- SOFT DELETE ------------------------------ */
+router.patch('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id)
+        if (isNaN(id)) {
+            return res.json({ error: MSG.POS_ID_WRONG })
+        }
+        const position = await prisma.position.findFirst(
+            {
+                where: {
+                    id
+                }
+            }
+        )
+        if (!position) {
+            return res.json({ error: MSG.POS_ID_WRONG })
+        }
+        await prisma.position.update(
+            {
+                where: { id },
+                data: {
+                    isDeleted: !position.isDeleted
+                }
+            }
+        )
+        res.json({ message: MSG.POS_IS_CHECK_DELETED });
+    } catch (error: any) {
+        if (error.code === 'P2025') {
+            return res.status(404).json({ error: MSG.POS_ID_WRONG });
+        }
+        console.error(error);
+        res.status(500).json({ error: MSG.SERVER_ERROR });
+    }
+});
 export default router;

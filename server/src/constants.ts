@@ -7,6 +7,8 @@ export const ROLES ={
     LEADER : 'leader'
 } as const
 
+export const WORK_STATUSES=['draft', 'in_progress', 'completed', 'submitted', 'approved', 'rejected', 'closed']
+
 export const TEAM_STATUS ={
     FORMING:"forming",
     ACTIVE:"active",
@@ -23,6 +25,7 @@ export const MSG = {
     /* -------------------------------- EMPLOYEE -------------------------------- */
     EMP_ID_WRONG :"Сотрудник с данным ID не найден",
     EMP_ID_ALREADY_HAVE :'Сотрудник с таким EmployeeID уже существует' ,
+    EMP_ALREADY_IN_TEAM: "Сотрудник уже в бригаде",
     EMP_NOT_FOUND: "Сотрудник не найден",
     EMP_IS_BLOCKED: "Сотрудник заблокирован",
     EMP_IS_CHECK_DELETED: "Сотрудник помечен на удаление",
@@ -35,9 +38,17 @@ export const MSG = {
     /* ---------------------------------- TEAM ---------------------------------- */
     TEAM_SET_ERROR:"Ошибка в назначении бригады",
     TEAM_ID_WRONG:"Бригада с данным ID не найдена.",
+    TEAM_IS_RESTORED: "Бригада восстановлена.",
+    TEAM_IS_DELETED_SOFT: "Бригада помечена на удаление.",
+    TEAM_IS_DELETED: "Бригада удалена.",
+    TEAM_IS_CREATED: "Бригада создана.",
     /* ---------------------------------- WORK ---------------------------------- */
     WORK_ID_WRONG : "Отсутствует работа с данным ID",
     WORK_OUT_ACCESS :" Доступ к данной работе запрещен",
+    WORK_IS_CREATED :"Работа создана успешно",
+    WORK_STATUS_IS_WRONG:"Не верный статус работы",
+    WORK_DATA_GET_OK:"Данные по работе получены успешно.",
+    WORK_UPDATE_OK:"Данные успешно обновлены.",
     /* ------------------------------- VALIDATION ------------------------------- */
     SERVER_ERROR: "Ошибка сервера",
     ACCESS_DENIED: "Доступ запрещен",
@@ -53,7 +64,9 @@ export const MSG = {
     REQ_FIELD_PHONE:'Телефон обязателен',
     REQ_EMP_ID_AND_PASSWORD:'EmployeeID и пароль обязательны',
     REQ_POSITION:"Необходимо ввести должность",
-
+    /* ------------------------------ RESPONSE DATA ----------------------------- */
+    RES_STATUS_OK : "Запрос выполнен успешно",
+    RES_STATUS_UPDATE : "Данные обновлены",
 
 
 
