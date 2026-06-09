@@ -8,7 +8,8 @@ model Team {
   leader   Employee @relation("MakeLeader",fields: [leaderId],references: [id])
   
   members  TeamMember[]
-  works    Work[] @relation("TeamWork")
+  workId String? @unique
+  activeWork    Work? @relation("TeamWork",fields: [workId],references: [id])
   /* Default fields---------------------------------------------- */
   isDeleted    Boolean @default(false)
   createdAt    DateTime @default(now())

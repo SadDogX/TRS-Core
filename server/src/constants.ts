@@ -12,7 +12,9 @@ export const WORK_STATUSES=['draft', 'in_progress', 'completed', 'submitted', 'a
 export const TEAM_STATUS ={
     FORMING:"forming",
     ACTIVE:"active",
-    ARCHIVED:"archived"
+    ARCHIVED:"archived",
+    IDLE:"idle",
+    MAINTENANCE:"maintenance"
 }
 //? * ----------------------------- STRING MESSAGES ---------------------------- */
 export const MSG = {
@@ -37,8 +39,12 @@ export const MSG = {
     POS_IS_DELETED: "Должность удалена",
     /* ---------------------------------- TEAM ---------------------------------- */
     TEAM_SET_ERROR:"Ошибка в назначении бригады",
+    TEAM_SET_ALREADY:"Бригада уже назначена на работу.",
     TEAM_ID_WRONG:"Бригада с данным ID не найдена.",
     TEAM_IS_RESTORED: "Бригада восстановлена.",
+    TEAM_ASSIGNED_TO_WORK: "Бригада назначена на работу.",
+    TEAM_ASSIGNED_ALREADY: "Брагада уже назначена на данную работу.",
+    TEAM_ALREADY_FREE:"Брагада уже свободна от работы.",
     TEAM_IS_DELETED_SOFT: "Бригада помечена на удаление.",
     TEAM_IS_DELETED: "Бригада удалена.",
     TEAM_IS_CREATED: "Бригада создана.",
@@ -48,7 +54,23 @@ export const MSG = {
     WORK_IS_CREATED :"Работа создана успешно",
     WORK_STATUS_IS_WRONG:"Не верный статус работы",
     WORK_DATA_GET_OK:"Данные по работе получены успешно.",
+    WORK_ROLE_INVALID:"Нет доступа, не та роль.",
     WORK_UPDATE_OK:"Данные успешно обновлены.",
+    WORK_IS_DELETED:"Работа удалена безвозвратно.",
+    WORK_IS_SOFTDELETED:"Работа уже помечена на удаление.",
+    WORK_SOFT_DELETE:"Работа помечена на удаление.",
+    WORK_RESTORE:"Работа востановлена.",
+    /* ----------------------------- WORK_ASSIGNMENT ---------------------------- */
+    WORK_ASSIGNMENT_ID_WRONG : "Отсутствует записть с текущим ID",
+    WORK_ASSIGNMENT_OUT_ACCESS :" Доступ к данной записи запрещен",
+    WORK_ASSIGNMENT_IS_CREATED :"Запись создана успешно",
+    WORK_ASSIGNMENT_DATA_GET_OK:"Данные получены успешно.",
+    WORK_ASSIGNMENT_UPDATE_OK:"Данные успешно обновлены.",
+    WORK_ASSIGNMENT_ALREADY_EXISTS:"Дублирующая запись.",
+    WORK_ASSIGNMENT_IS_SOFTDELETED:"Запись уже помечена на удаление.",
+    WORK_ASSIGNMENT_SOFT_DELETE:"Запись помечена на удаление.",
+    WORK_ASSIGNMENT_RESTORE:"Запись востановлена.",
+    WORK_ASSIGNMENT_EMPLOYEES_ENOUGHT:"Бригада укомплектована.",
     /* ------------------------------- VALIDATION ------------------------------- */
     SERVER_ERROR: "Ошибка сервера",
     ACCESS_DENIED: "Доступ запрещен",
@@ -68,12 +90,12 @@ export const MSG = {
     RES_STATUS_OK : "Запрос выполнен успешно",
     RES_STATUS_UPDATE : "Данные обновлены",
 
-
-
 }
 
 /* --------------------------------- Create --------------------------------- */
-/* ---------------------------------- Read ALL---------------------------------- */
-/* ---------------------------------- Read BY ID---------------------------------- */
+/* --------------------------------- Read By Id --------------------------------- */
+/* -------------------------------- Read all -------------------------------- */
 /* --------------------------------- Update --------------------------------- */
-/* --------------------------------- Delete --------------------------------- */
+/* --------------------------------- Hard Delete --------------------------------- */
+/* --------------------------------- Soft Delete --------------------------------- */
+/* --------------------------------- Restore delete item --------------------------------- */

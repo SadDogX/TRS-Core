@@ -4,24 +4,18 @@ import { authenticate } from "../middleware/auth"
 import { requireRole } from "../middleware/requireRole"
 import { MSG, ROLES, WORK_STATUSES } from "../constants"
 import { error } from "node:console"
+import { pictureDir } from "@tauri-apps/api/path"
 
 const router = Router()
 /* --------------------------------- Create --------------------------------- */
 router.post("/", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
     try {
-        const { name, status, wellId, workTypeId, teamId, supervisorId } = req.body
+        const { name, status, wellId, workTypeId, supervisorId } = req.body
         if (status && !WORK_STATUSES.includes(status)) {
             return res.status(400).json({ error: MSG.WORK_STATUS_IS_WRONG })
         }
-        const team = await prisma.team.findFirst({
-            where: { id: teamId }
-        })
-        if (!team) {
-            return res.status(404).json({ error: MSG.TEAM_ID_WRONG })
-        }
-        if (req.user.role === ROLES.COORDINATOR && req.user.employeeId !== team.createdById) {
-            return res.status(400).json({ error: MSG.ACCESS_DENIED })
-        }
+
+
         const supervisor = await prisma.employee.findFirst({
             where: { id: supervisorId }
         })
@@ -36,7 +30,6 @@ router.post("/", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), asyn
                 wellId: wellId,
                 status: status,
                 supervisorId: supervisorId,
-                teamId: teamId,
                 workTypeId: workTypeId
             }
         })
@@ -52,28 +45,28 @@ router.post("/", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), asyn
 /* --------------------------------- Read By Id --------------------------------- */
 router.get("/:id", authenticate, async (req: Request, res: Response) => {
     try {
+        const where: any = {}
+        where.id = req.params.id
+        switch (req.user.role) {
+            case ROLES.COORDINATOR:
+                where.team = { is: { createdById: req.user.employeeId } }
+                break;
+            case ROLES.LEADER:
+                where.supervisorId = req.user.employeeId
+                break;
+            case ROLES.WORKER:
+                where.assignments = { some: { employeeId: req.user.employeeId } }
+                break;
+            case ROLES.ADMIN:
+                break;
+        }
         const work = await prisma.work.findFirst({
-            where: {
-                id: req.params.id
-            },
+            where: where,
             include: { team: true, assignments: true }
         })
         if (!work) {
             return res.status(404).json({ error: MSG.ACCESS_DENIED })
         }
-        if (req.user.role === ROLES.COORDINATOR && req.user.employeeId !== work.team.createdById) {
-            return res.status(403).json({ error: MSG.ACCESS_DENIED })
-        }
-        if (req.user.role === ROLES.LEADER && req.user.employeeId !== work.supervisorId) {
-            return res.status(403).json({ error: MSG.ACCESS_DENIED })
-        }
-        if (req.user.role === ROLES.WORKER) {
-            const isAssigned = work.assignments?.some(a => a.employeeId === req.user.employeeId)
-            if (!isAssigned) {
-                return res.status(403).json({ error: MSG.ACCESS_DENIED })
-            }
-        }
-
         console.log(work)
         return res.status(200).json({ message: MSG.WORK_DATA_GET_OK, data: work })
     } catch (error) {
@@ -87,7 +80,7 @@ router.get("/works", authenticate, async (req: Request, res: Response) => {
         const where: any = {};
         switch (req.user.role) {
             case ROLES.COORDINATOR:
-                where.team = { createdById: req.user.employeeId }
+                where.team = { is: { createdById: req.user.employeeId } }
                 break;
             case ROLES.LEADER:
                 where.supervisorId = req.user.employeeId
@@ -109,66 +102,235 @@ router.get("/works", authenticate, async (req: Request, res: Response) => {
 /* --------------------------------- Update --------------------------------- */
 router.put("/:id", authenticate, requireRole(ROLES.COORDINATOR, ROLES.ADMIN, ROLES.LEADER), async (req: Request, res: Response) => {
     try {
-        const target = await prisma.work.findFirst({ 
-            where: { id: req.params.id } ,
-            include:{team:true}
+
+        const where: any = {};
+        where.id = req.params.id
+        switch (req.user.role) {
+            case ROLES.COORDINATOR:
+                where.team = { is: { createdById: req.user.employeeId } };
+                break;
+            case ROLES.LEADER:
+                where.supervisorId = req.user.employeeId
+                break;
+            case ROLES.ADMIN:
+                break;
+        }
+        const target = await prisma.work.findFirst({
+            where: where,
+            include: { team: true }
         })
         if (!target) {
             return res.status(404).json({ error: MSG.WORK_ID_WRONG })
         }
-        if (req.user.role===ROLES.COORDINATOR && req.user.employeeId!== target.team.createdById){
-            return res.status(403).json({ error: MSG.WORK_OUT_ACCESS })
-        }
-        if (req.user.role===ROLES.LEADER && req.user.employeeId!== target.supervisorId){
-            return res.status(403).json({ error: MSG.WORK_OUT_ACCESS })
-        }
+
         const data = req.body
-        const updated_target =await prisma.work.update({
+        const updated_target = await prisma.work.update({
             where: { id: target.id },
             data: data
         })
-        res.status(200).json({ message: MSG.WORK_UPDATE_OK,data:updated_target })
+        res.status(200).json({ message: MSG.WORK_UPDATE_OK, data: updated_target })
     } catch (error) {
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
 
-router.patch("/:id/status",authenticate, requireRole(ROLES.COORDINATOR, ROLES.ADMIN, ROLES.LEADER), async (req: Request, res: Response)=>{
+router.patch("/:id/status", authenticate, requireRole(ROLES.COORDINATOR, ROLES.ADMIN, ROLES.LEADER), async (req: Request, res: Response) => {
     try {
+        const where: any = {}
+        where.id = req.params.id;
+
+        switch (req.user.role) {
+            case ROLES.COORDINATOR:
+                where.team = { is: { createdById: req.user.employeeId } }
+                break;
+            case ROLES.LEADER:
+                where.supervisorId = req.user.employeeId;
+                break;
+            case ROLES.ADMIN:
+                break;
+        }
+
         const target = await prisma.work.findFirst({
-            where:{id:req.params.id},
-            include:{team:true}
+            where: where,
+            include: { team: true }
         })
 
-        if (!target){
-            return res.status(404).json({error:MSG.WORK_ID_WRONG})
+        if (!target) {
+            return res.status(404).json({ error: MSG.WORK_ID_WRONG })
         }
 
-        if (req.user.role===ROLES.COORDINATOR && req.user.employeeId!== target.team.createdById){
-            return res.status(403).json({ error: MSG.WORK_OUT_ACCESS })
-        }
-        if (req.user.role===ROLES.LEADER && req.user.employeeId!== target.supervisorId){
-            return res.status(403).json({ error: MSG.WORK_OUT_ACCESS })
+        const { new_status } = req.body
+        if (!WORK_STATUSES.includes(new_status)) {
+            return res.status(400).json({ error: MSG.WORK_STATUS_IS_WRONG })
         }
 
-        const {new_status} = req.body
-        if (!WORK_STATUSES.includes(new_status)){
-            return res.status(400).json({error:MSG.WORK_STATUS_IS_WRONG})
-        }
-        
-        const update_target= await prisma.work.update({
-            where:{id:req.params.id},
-            data:{
-                status:new_status
+        const update_target = await prisma.work.update({
+            where: { id: req.params.id },
+            data: {
+                status: new_status
             }
         })
-        res.status(200).json({message:MSG.WORK_UPDATE_OK,data:update_target})
+        res.status(200).json({ message: MSG.WORK_UPDATE_OK, data: update_target })
     } catch (error) {
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
 /* --------------------------------- Hard Delete --------------------------------- */
+router.delete("/:id/hard", authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
+    try {
+        await prisma.work.delete({
+            where: { id: req.params.id }
+        })
+        res.status(200).json({ message: "Успешное удаление." })
+    } catch (error: any) {
+        if (error.code === "P2025")
+            return res.status(400).json({ error: MSG.WORK_ID_WRONG })
+        res.status(500).json({ error: MSG.SERVER_ERROR })
+    }
+})
 /* --------------------------------- Soft Delete --------------------------------- */
-/* --------------------------------- Restore delete item --------------------------------- */
+router.delete("/:id/soft", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR, ROLES.LEADER), async (req: Request, res: Response) => {
+    try {
+        const where: any = {}
+        where.id = req.params.id
+        switch (req.user.role) {
+            case ROLES.LEADER:
+                where.supervisorId = req.user.employeeId
+                break;
+            case ROLES.COORDINATOR:
+                where.team = { is: { createdById: req.user.employeeId } }
+                break;
+            case ROLES.ADMIN:
+                break
+        }
+        const target = await prisma.work.findFirst({ where })
 
+        if (!target) {
+            return res.status(404).json({ error: MSG.WORK_ID_WRONG })
+        }
+
+        await prisma.work.update({
+            where: { id: target.id },
+            data: {
+                isDeleted: true
+            }
+        })
+
+        res.status(200).json({ message: MSG.WORK_SOFT_DELETE })
+
+    } catch (error: any) {
+        if (error.code === "P2025")
+            return res.status(404).json({ error: MSG.WORK_ID_WRONG })
+        res.status(500).json({ error: MSG.SERVER_ERROR })
+    }
+})
+/* --------------------------------- Restore delete item --------------------------------- */
+router.patch("/:id/restore", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR, ROLES.LEADER), async (req: Request, res: Response) => {
+    try {
+        const where: any = {}
+        where.id = req.params.id
+        switch (req.user.role) {
+            case ROLES.LEADER:
+                where.supervisorId = req.user.employeeId
+                break;
+            case ROLES.COORDINATOR:
+                where.team = { is: { createdById: req.user.employeeId } }
+                break;
+            case ROLES.ADMIN:
+                break
+        }
+        const target = await prisma.work.findFirst({ where })
+
+        if (!target) {
+            return res.status(404).json({ error: MSG.WORK_ID_WRONG })
+        }
+
+        await prisma.work.update({
+            where: { id: target.id },
+            data: {
+                isDeleted: false
+            }
+        })
+
+        res.status(200).json({ message: MSG.WORK_RESTORE })
+
+    } catch (error: any) {
+        if (error.code === "P2025")
+            return res.status(404).json({ error: MSG.WORK_ID_WRONG })
+        res.status(500).json({ error: MSG.SERVER_ERROR })
+    }
+})
+/* ----------------------------- TEAM ASSIGmMENT ---------------------------- */
+router.patch("/:id/assign", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
+    try {
+        const { workId } = req.body
+        const team = await prisma.team.findFirst({ where: { id: req.params.id } })
+        if (!team) {
+            return res.status(404).json({ error: MSG.TEAM_ID_WRONG })
+        }
+        if (team.isDeleted) {
+            return res.status(400).json({ error: MSG.TEAM_IS_DELETED_SOFT })
+        }
+        if (team.workId) {
+            return res.status(400).json({ error: MSG.TEAM_SET_ALREADY })
+        }
+        if (req.user.role === ROLES.COORDINATOR && team.createdById !== req.user.employeeId) {
+            return res.status(403).json({ error: MSG.ACCESS_DENIED })
+        }
+        const work = await prisma.work.findFirst({ where: { id: workId, isDeleted: false } });
+        if (!work) {
+            return res.status(404).json({ error: MSG.WORK_ID_WRONG });
+        }
+        const workBusy = await prisma.team.findFirst({ where: { workId: workId, isDeleted: false } })
+
+        if (workBusy) {
+            return res.status(400).json({ error: MSG.TEAM_ASSIGNED_ALREADY });
+        }
+
+        await prisma.team.update({
+            where: {
+                id: team.id
+            },
+            data: { workId: workId }
+        })
+
+        res.status(200).json({ message: MSG.TEAM_ASSIGNED_TO_WORK });
+    } catch (error: any) {
+        if (error.code === "P2025")
+            return res.status(404).json({ error: MSG.WORK_ID_WRONG })
+        res.status(500).json({ error: MSG.SERVER_ERROR })
+    }
+})
+
+router.patch("/:id/unassign", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
+    try {
+        const team = await prisma.team.findFirst({ where: { id: req.params.id } })
+        if (!team) {
+            return res.status(404).json({ error: MSG.TEAM_ID_WRONG })
+        }
+        if (team.isDeleted) {
+            return res.status(400).json({ error: MSG.TEAM_IS_DELETED_SOFT })
+        }
+        if (!team.workId) {
+            return res.status(400).json({ error: MSG.TEAM_ALREADY_FREE  })
+        }
+        if (req.user.role === ROLES.COORDINATOR && team.createdById !== req.user.employeeId) {
+            return res.status(403).json({ error: MSG.ACCESS_DENIED })
+        }
+
+
+        await prisma.team.update({
+            where: {
+                id: team.id
+            },
+            data: { workId: null }
+        })
+
+        res.status(200).json({ message: MSG.TEAM_ASSIGNED_TO_WORK });
+    } catch (error: any) {
+        if (error.code === "P2025")
+            return res.status(404).json({ error: MSG.WORK_ID_WRONG })
+        res.status(500).json({ error: MSG.SERVER_ERROR })
+    }
+})
 export default router
