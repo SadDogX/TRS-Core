@@ -16,6 +16,7 @@ import employeesRouter from './routes/employees';
 import postionsRouter from './routes/positions';
 import teamRouter from './routes/teams';
 import workRouter from './routes/work';
+import workAssignments from './routes/work_assignment';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,9 +25,9 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/bases', basesRouter);
 app.use('/api/positions', postionsRouter);
-app.use('/api/team,',teamRouter);
+app.use('/api/team',teamRouter);
 app.use('/api/work',workRouter);
-
+app.use('/api/workassignment',workAssignments)
 
 app.use('/api/auth', authRouter);
 app.use('/api/employees', employeesRouter);

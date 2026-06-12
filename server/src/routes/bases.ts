@@ -2,11 +2,26 @@ import { Router, Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
-import { MSG, ROLES } from '../constants';
+import { ENTITY, MSG, ROLES } from '../constants';
 
 const router = Router();
 
-// GET /api/bases — все авторизованные могут смотреть
+/* --------------------------------- CREATE --------------------------------- */
+router.post('/', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
+  try {
+    const { name, city, address } = req.body;
+    if (!name || !city) {
+      return res.status(400).json({ error: MSG.REQ_CITY });
+    }
+    const base = await prisma.base.create({
+      data: { name, city, address },
+    });
+    res.status(201).json({message:MSG.ENTITY_WAS_CREATED(ENTITY.BASE,base.id),data:base});
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: MSG.SERVER_ERROR });
+  }
+});
 /* ---------------------------------- READ ---------------------------------- */
 router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
@@ -21,14 +36,13 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         },
       },
     });
-    res.json(bases);
+    res.status(200).json({message:MSG.ENTITY_WAS_READ(ENTITY.BASE),data:bases});
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: MSG.SERVER_ERROR  });
+    res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
 /* ------------------------------- READ BY ID ------------------------------- */
-// GET /api/bases/:id
 router.get('/:id', authenticate, async (req: Request, res: Response) => {
   try {
     const base = await prisma.base.findUnique({
@@ -44,34 +58,15 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
       },
     });
     if (!base) {
-      return res.status(404).json({ error: MSG.BASE_ID_WRONG });
-    }
-    res.json(base);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: MSG.SERVER_ERROR});
-  }
-});
+      return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.BASE, req.params.id) })
 
-// POST /api/bases — только admin и coordinator
-/* --------------------------------- CREATE --------------------------------- */
-router.post('/', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
-  try {
-    const { name, city, address } = req.body;
-    if (!name || !city) {
-      return res.status(400).json({ error: MSG.REQ_CITY });
     }
-    const base = await prisma.base.create({
-      data: { name, city, address },
-    });
-    res.status(201).json(base);
+    res.status(200).json({message:MSG.ENTITY_WAS_READ(ENTITY.BASE),data:base});
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
-
-// PUT /api/bases/:id — только admin и coordinator
 /* --------------------------------- UPDATE --------------------------------- */
 router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
   try {
@@ -80,47 +75,60 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
       where: { id: req.params.id },
       data: { name, city, address },
     });
-    res.json(base);
+    res.status(200).json({message:MSG.ENTITY_WAS_UPDATED(ENTITY.BASE,base.id),data:base});
   } catch (error: any) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ error: MSG.BASE_ID_WRONG });
+      return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.BASE, req.params.id) })
     }
     console.error(error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
 /* --------------------------------- HARD DELETE --------------------------------- */
-// DELETE /api/bases/:id — только admin
 router.delete('/:id/hard', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
   try {
     await prisma.base.delete({
       where: { id: req.params.id },
     });
-    res.json({ message: MSG.BASE_IS_DELETED});
+    res.json({ message: MSG.ENTITY_WAS_HARD_DELETED(ENTITY.BASE,req.params.id) });
   } catch (error: any) {
     if (error.code === 'P2025') {
-      return res.status(404).json({ error: MSG.BASE_ID_WRONG });
+      return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.BASE, req.params.id) })
     }
     console.error(error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
 /* ------------------------------- SOFT DELETE ------------------------------ */
-router.delete('/:id', authenticate, requireRole(ROLES.ADMIN,ROLES.COORDINATOR), async (req: Request, res: Response) => {
-  try { 
-    const base=await prisma.base.update({
-      where:{id:req.params.id},
-      data:{isDeleted:true}
+router.delete('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
+  try {
+    const base = await prisma.base.update({
+      where: { id: req.params.id },
+      data: { isDeleted: true }
     })
-    res.json({message:MSG.BASE_IS_CHECK_DELETED})
-  } catch (error:any) {
-    if (error.code =="P2025"){
-      console.log(MSG.BASE_ID_WRONG)
-      res.json({error:MSG.BASE_ID_WRONG})
+    res.json({ message: MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.BASE,req.params.id) })
+  } catch (error: any) {
+    if (error.code == "P2025") {
+      res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.BASE, req.params.id) })
     }
     console.error(error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 })
-
+/* --------------------------------- RESTORE --------------------------------- */
+router.patch('/:id/restore', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
+  try {
+    const base = await prisma.base.update({
+      where: { id: req.params.id },
+      data: { isDeleted: false }
+    });
+    res.json({ message: MSG.ENTITY_WAS_RESTORE(ENTITY.BASE, req.params.id) });
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.BASE, req.params.id) });
+    }
+    console.error(error);
+    res.status(500).json({ error: MSG.SERVER_ERROR });
+  }
+});
 export default router;
