@@ -10,7 +10,7 @@ const router = Router();
 /* --------------------------------- CREATE --------------------------------- */
 router.post('/', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
   try {
-    const { employeeId, fullName, email, phone, password, role, baseId } = req.body;
+    const { employeeId, fullName,positionId, email, phone, password, role, baseId } = req.body;
 
     if (!employeeId || !/^E\d{6}$/.test(employeeId)) {
       return res.status(400).json({ error: MSG.STR_MAIL_WRONG_FORMAT });
@@ -36,12 +36,14 @@ router.post('/', authenticate, requireRole(ROLES.ADMIN), async (req: Request, re
       return res.status(400).json({ error: MSG.REQ_FIELD_PHONE });
     }
 
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const employee = await prisma.employee.create({
       data: {
         employeeId,
         fullName,
+        positionId,
         email,
         phone,
         passwordHash: hashedPassword,

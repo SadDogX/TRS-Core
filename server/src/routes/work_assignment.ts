@@ -1,9 +1,8 @@
 import { Router, Request, Response } from "express";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/requireRole";
-import { MSG, ROLES } from "../constants";
+import { ENTITY, MSG, ROLES, ROLESNAME } from "../constants";
 import prisma from "../lib/prisma";
-import { error } from "node:console";
 
 const router = Router()
 
@@ -13,24 +12,24 @@ router.post("/:workId/assignments", authenticate, requireRole(ROLES.COORDINATOR)
         const { employeeId, role } = req.body
         const employee = await prisma.employee.findFirst({ where: { id: employeeId } })
         if (!employee) {
-            return res.status(404).json({ error: MSG.EMP_ID_WRONG })
+            return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE,employeeId) })
         }
         if (employee.isDeleted) {
-            return res.status(400).json({ error: MSG.EMP_IS_DELETED })
+            return res.status(400).json({ error: MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.EMPLOYEE,employeeId) })
         }
         if (employee.isBlocked) {
             return res.status(400).json({ error: MSG.EMP_IS_BLOCKED })
         }
-        if (role !== "worker" && role !== "supervisor") {
-            return res.status(400).json({ error: MSG.WORK_ROLE_INVALID });
+        if (role !== ROLES.WORKER && role !== ROLES.LEADER) {
+            return res.status(400).json({error:MSG.WORK_ROLE_INVALID});
         }
 
         const work = await prisma.work.findFirst({ where: { id: req.params.workId } })
         if (!work) {
-            return res.status(404).json({ error: MSG.WORK_ASSIGNMENT_ID_WRONG })
+            return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,req.params.id) })
         }
         if (work.isDeleted) {
-            return res.status(400).json({ error: MSG.WORK_SOFT_DELETE })
+            return res.status(400).json({ error: MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.WORK,work.id) })
         }
         const alreadyAssignment = await prisma.workAssignment.findFirst({
             where: {
@@ -54,7 +53,7 @@ router.post("/:workId/assignments", authenticate, requireRole(ROLES.COORDINATOR)
                 role
             }
         })
-        res.status(201).json({ message: MSG.WORK_ASSIGNMENT_IS_CREATED, data: assignment })
+        res.status(201).json({ message: MSG.ENTITY_WAS_CREATED(ENTITY.WORK_ASSIGNMENT,assignment.id), data: assignment })
 
     } catch (error) {
         res.status(500).json({ error: MSG.SERVER_ERROR })
@@ -75,7 +74,7 @@ router.get('/:workId/assignments', authenticate, requireRole(ROLES.ADMIN, ROLES.
             }
         })
         if (!work) {
-            return res.status(404).json({ error: MSG.WORK_ASSIGNMENT_ID_WRONG })
+            return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,req.params.workId) })
         }
 
         const where: any = {}
@@ -97,7 +96,7 @@ router.get('/:workId/assignments', authenticate, requireRole(ROLES.ADMIN, ROLES.
             where
         })
 
-        res.status(200).json({ message: MSG.WORK_ASSIGNMENT_DATA_GET_OK, data: result })
+        res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.WORK_ASSIGNMENT), data: result })
 
     } catch (error) {
         res.status(500).json({ error: MSG.SERVER_ERROR })
@@ -117,7 +116,7 @@ router.get('/:workId/assignments/:id', authenticate, requireRole(ROLES.ADMIN, RO
             }
         })
         if (!work) {
-            return res.status(404).json({ error: MSG.WORK_ASSIGNMENT_ID_WRONG })
+            return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,req.params.workId) })
         }
 
         const where: any = {}
@@ -140,18 +139,16 @@ router.get('/:workId/assignments/:id', authenticate, requireRole(ROLES.ADMIN, RO
             where
         })
         if (!result) {
-            return res.status(404).json({ error: MSG.WORK_ASSIGNMENT_ID_WRONG })
+            return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK_ASSIGNMENT,req.params.id) })
         }
 
-        res.status(200).json({ message: MSG.WORK_ASSIGNMENT_DATA_GET_OK, data: result })
+        res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.WORK_ASSIGNMENT), data: result })
 
     } catch (error) {
         res.status(500).json({ error: MSG.SERVER_ERROR })
 
     }
 })
-
-/* -------------------------------- Read all -------------------------------- */
 /* --------------------------------- Update --------------------------------- */
 router.patch('/:workId/updaterole/:id', authenticate, requireRole(ROLES.COORDINATOR, ROLES.ADMIN), async (req: Request, res: Response) => {
     try {
@@ -165,11 +162,11 @@ router.patch('/:workId/updaterole/:id', authenticate, requireRole(ROLES.COORDINA
             }
         })
         if (!work) {
-            return res.status(404).json({ error: MSG.WORK_ASSIGNMENT_ID_WRONG })
+            return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,req.params.workId) })
         }
 
         if (req.user.role === ROLES.COORDINATOR && req.user.employeeId !== work.team?.createdById) {
-            return res.status(403).json({ error: MSG.ACCESS_DENIED })
+            return res.status(403).json({ error: MSG.ACCESS_DENIED(ROLES.COORDINATOR) })
         }
         const { newRole } = req.body
 
@@ -177,14 +174,14 @@ router.patch('/:workId/updaterole/:id', authenticate, requireRole(ROLES.COORDINA
             return res.status(400).json({ error: MSG.WORK_ROLE_INVALID })
         }
 
-        await prisma.workAssignment.update({
+        const assignment = await prisma.workAssignment.update({
             where: {
                 id: req.params.id,
                 workId: work.id,
             },
             data: { role: newRole }
         })
-        res.status(200).json({ message: MSG.WORK_ASSIGNMENT_ROLE_UPDATE_OK })
+        res.status(200).json({ message: MSG.ENTITY_WAS_UPDATED(ENTITY.WORK_ASSIGNMENT,assignment.id),data:assignment })
 
     } catch (error) {
         res.status(500).json({ error: MSG.SERVER_ERROR })
@@ -199,7 +196,7 @@ router.delete('/:workId/assignments/:id/hard', authenticate, requireRole(ROLES.A
         })
 
         if (!work) {
-            return res.status(404).json({ error: MSG.WORK_ASSIGNMENT_ID_WRONG })
+            return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,req.params.workId) })
         }
         await prisma.workAssignment.delete({
             where: {
@@ -207,7 +204,7 @@ router.delete('/:workId/assignments/:id/hard', authenticate, requireRole(ROLES.A
                 id: req.params.id
             }
         })
-        res.status(200).json({ message: MSG.WORK_ASSIGNMENT_HARD_DELETE })
+        res.status(200).json({ message: MSG.ENTITY_WAS_HARD_DELETED(ENTITY.WORK_ASSIGNMENT,req.params.id) })
     } catch (error) {
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
@@ -221,7 +218,7 @@ router.delete('/:workId/assignments/:id/soft', authenticate, requireRole(ROLES.A
         })
 
         if (!work) {
-            return res.status(404).json({ error: MSG.WORK_ASSIGNMENT_ID_WRONG })
+            return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,req.params.workId) })
         }
 
         if(req.user.role===ROLES.COORDINATOR&& req.user.employeeId!==work.team?.createdById){
@@ -234,7 +231,7 @@ router.delete('/:workId/assignments/:id/soft', authenticate, requireRole(ROLES.A
             },
             data:{isDeleted:true}
         })
-        res.status(200).json({ message: MSG.WORK_ASSIGNMENT_SOFT_DELETE })
+        res.status(200).json({ message: MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.WORK_ASSIGNMENT,req.params.id) })
     } catch (error) {
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
@@ -248,7 +245,7 @@ router.patch('/:workId/assignments/:id/restore', authenticate, requireRole(ROLES
         })
 
         if (!work) {
-            return res.status(404).json({ error: MSG.WORK_ASSIGNMENT_ID_WRONG })
+            return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,req.params.workId) })
         }
 
         if(req.user.role===ROLES.COORDINATOR&& req.user.employeeId!==work.team?.createdById){
@@ -261,7 +258,7 @@ router.patch('/:workId/assignments/:id/restore', authenticate, requireRole(ROLES
             },
             data:{isDeleted:false}
         })
-        res.status(200).json({ message: MSG.WORK_ASSIGNMENT_RESTORE })
+        res.status(200).json({ message: MSG.ENTITY_WAS_RESTORE(ENTITY.WORK_ASSIGNMENT,req.params.id) })
     } catch (error) {
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }

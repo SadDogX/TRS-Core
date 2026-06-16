@@ -300,10 +300,10 @@ router.patch('/:id/assign', authenticate, requireRole(ROLES.COORDINATOR), async 
             return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.TEAM, req.params.id) })
         }
         if (!work) {
-            return res.status(400).json({ error: MSG.WORK_ASSIGNMENT_ID_WRONG })
+            return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,workId) })
         }
         if (target.workId) {
-            return res.status(400).json({ error: MSG.WORK_TEAM_ASSIGNED })
+            return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,target.workId) })
         }
         if (target.members.length == 0) {
             return res.status(404).json({ error: MSG.TBL_IS_EMPTY(ENTITY.TEAM) })
@@ -317,7 +317,7 @@ router.patch('/:id/assign', authenticate, requireRole(ROLES.COORDINATOR), async 
         }
         const workBusy = await prisma.team.findFirst({ where: { workId, isDeleted: false } });
         if (workBusy) {
-            return res.status(400).json({ error: MSG.WORK_ALREADY_ASSIGNED });
+            return res.status(400).json({ error: MSG.ENTITY_ALREADY_HAVE(ENTITY.WORK,workBusy.id) });
         }
         await prisma.team.update({
             where: { id: target.id },
