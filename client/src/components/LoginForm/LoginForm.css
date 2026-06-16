@@ -1,0 +1,15 @@
+form{
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    color: #f1f1f1;
+    background-color: #8e8e8e;
+    padding: 40px;
+    border-radius: 15px;
+    /* box-shadow: 3px 3px 5px #e8fbff; */
+
+    & input[type='text'],input[type='password'],button{
+        border-radius: 3px;
+        font-size: 20px;
+    }
+}

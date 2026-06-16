@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
+import './LoginForm.css'
 
-const LoginPage = () => {
+const LoginForm = () => {
     const [employeeId, setEmployeeId] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -22,7 +23,7 @@ const LoginPage = () => {
 
     return (
         <form onSubmit={handleSubmit}>
-            <h1>Вход в TRS Core</h1>
+            <h3>Вход в TRS Core</h3>
             {error && <p style={{ color: 'red' }}>{error}</p>}
             <input
                 name="employeeId"
@@ -43,4 +44,4 @@ const LoginPage = () => {
     );
 };
 
-export default LoginPage;
+export default LoginForm

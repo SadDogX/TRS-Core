@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
-import type { EmployeeType } from "../type"
-import { api } from "../api"
-import Modal from "../components/Modal/Modal"
-import EmployeeForm from "../components/EmployeeFolrm/EmployeeForm"
+import type { EmployeeType } from "../../type"
+import { api } from "../../api"
+import Modal from "../../components/Modal/Modal"
+import EmployeeForm from "../../components/EmployeeForm/EmployeeForm"
 
 const EmployeesPage = () => {
     const [employees, setEmployees] = useState<EmployeeType[]>([])

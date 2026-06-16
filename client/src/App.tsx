@@ -1,8 +1,8 @@
 import './App.css'
 import { AuthProvider } from './context/AuthContext'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import LoginPage from './pages/LoginPage'
-import EmployeePages from './pages/EmployeesPage'
+import LoginPage from './pages/LoginPage/LoginPage'
+import EmployeePages from './pages/EmployeesPage/EmployeesPage'
 
 function App() {
 
