@@ -1,6 +1,6 @@
 model Work {
   id           String           @id @default(uuid())
-  name         String           @unique
+  name         String?           @unique
   status       String           @default("drift")
   wellId       String // скважина, пока строкой
   /* -----------------------------Links--------------------------------------------- */

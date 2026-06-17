@@ -10,7 +10,7 @@ const router = Router();
 /* --------------------------------- CREATE --------------------------------- */
 router.post('/', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
   try {
-    const { employeeId, fullName,positionId, email, phone, password, role, baseId } = req.body;
+    const { employeeId, fullName, positionId, email, phone, password, role, baseId } = req.body;
 
     if (!employeeId || !/^E\d{6}$/.test(employeeId)) {
       return res.status(400).json({ error: MSG.STR_MAIL_WRONG_FORMAT });
@@ -34,6 +34,13 @@ router.post('/', authenticate, requireRole(ROLES.ADMIN), async (req: Request, re
 
     if (!phone) {
       return res.status(400).json({ error: MSG.REQ_FIELD_PHONE });
+    }
+
+    if (!phone) {
+      const existingPhone = await prisma.employee.findUnique({ where: { phone } });
+      if (existingPhone) {
+        return res.status(400).json({ error: `Телефон : ${existingPhone.phone} уже используется у пользователя - ${existingPhone.fullName}` });
+      }
     }
 
 
@@ -77,7 +84,8 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       {
         where,
         include: {
-          postion: true
+          position: true,
+          base: true
         },
 
       });

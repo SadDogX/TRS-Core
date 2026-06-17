@@ -56,16 +56,16 @@ export const ENTITY = {
 export const MSG = {
     /* ---------------------------- DINAMIC CONSTANTS --------------------------- */
 
-    ENTITY_NOT_FOUND_ID: (entity: string, id: string) => { `${entity} с  id:${id} не найдено.` },
-    ENTITY_WAS_CREATED: (entity: string, id: string | number = '') => { `${entity} с id:${id} был создан.` },
-    ENTITY_WAS_READ: (entity: string) => { `Данные по ${entity} получены успешно.` },
-    ENTITY_WAS_UPDATED: (entity: string, id: string | number) => { `${entity} с id:${id} была обновлена.` },
-    ENTITY_WAS_HARD_DELETED: (entity: string, id: string) => { `${entity} с  id:${id} был(а) удален(а).` },
-    ENTITY_WAS_SOFT_DELETE: (entity: string, id: string) => { `${entity} с  id:${id} был(а) отмечен(а) на удаление.` },
-    ENTITY_WAS_RESTORE: (entity: string, id: string) => { `${entity} с  id:${id} был(а) востановлен(а).` },
-    ENTITY_ALREADY_HAVE: (entity: string, id: string) => { `${entity} с таким  id:${id} уже существует.` },
-    ACCESS_DENIED: (entity: string) => { `${entity}(у) доступ запрещён.` },
-    TBL_IS_EMPTY: (entity: string) => { `Таблица ${entity} пуста.` },
+    ENTITY_NOT_FOUND_ID: (entity: string, id: string) => { return `${entity} с  id:${id} не найдено.` },
+    ENTITY_WAS_CREATED: (entity: string, id: string | number = '') => {return `${entity} с id:${id} был создан.` },
+    ENTITY_WAS_READ: (entity: string) => {return `Данные по ${entity} получены успешно.` },
+    ENTITY_WAS_UPDATED: (entity: string, id: string | number) => {return `${entity} с id:${id} была обновлена.` },
+    ENTITY_WAS_HARD_DELETED: (entity: string, id: string) => {return `${entity} с  id:${id} был(а) удален(а).` },
+    ENTITY_WAS_SOFT_DELETE: (entity: string, id: string) => {return `${entity} с  id:${id} был(а) отмечен(а) на удаление.` },
+    ENTITY_WAS_RESTORE: (entity: string, id: string) => {return `${entity} с  id:${id} был(а) востановлен(а).` },
+    ENTITY_ALREADY_HAVE: (entity: string, id: string) => {return `${entity} с таким  id:${id} уже существует.` },
+    ACCESS_DENIED: (entity: string) => {return `${entity}(у) доступ запрещён.` },
+    TBL_IS_EMPTY: (entity: string) => {return `Таблица ${entity} пуста.` },
     // DRAFT:(entity:string,id:string)=>{`${entity} ${id}`},
     /* -------------------------------- EMPLOYEE -------------------------------- */
     EMP_IS_BLOCKED: "Сотрудник заблокирован",

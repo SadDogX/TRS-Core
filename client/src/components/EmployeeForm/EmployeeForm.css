@@ -1,12 +1,23 @@
-.employee-form-flex form {
-    color: black;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 20px;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-    & button { width: 30%; }
-    & input[type='text'], & input[type='password'] { width: 80%; }
-    & select { width: 60%; }
+.employee-form-flex {
+    width: 100%;
+    font-size: 1.4rem;
+    padding: 20px;
+    margin: 40px 0;
+}
+
+.employee-form-flex form {
+    display: flex;
+    gap: 5px;
+
+
+    & input[type='text'],
+    & input[type='password'] select {
+        width: 100%;
+    }
 }

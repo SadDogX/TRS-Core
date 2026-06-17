@@ -19,7 +19,11 @@ export const api = {
             this.clearToken();
             window.location.href = '/login';
         }
-        return res.json();
+        const data  = await res.json()
+        if (!res.ok){
+            throw new Error(data.error||'Ошибка сервера')
+        }
+        return data;
     },
 
     // Auth

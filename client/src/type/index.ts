@@ -1,9 +1,9 @@
 import { ASSIGNMENT_ROLES, ROLES, WORK_STATUSES } from "../constants"
 
 export type ApiResponse<T> = {
-    message?:string,
-    data?:T,
-    error?:string;
+    message?: string,
+    data?: T,
+    error?: string;
 }
 export type EmployeeType = {
     id: string,
@@ -18,6 +18,9 @@ export type EmployeeType = {
     isDeleted: boolean,
     createdAt: string,
     updatedAt: string
+
+    position?: PositionType;
+    base?: BaseType;
 }
 
 export type PositionType = {

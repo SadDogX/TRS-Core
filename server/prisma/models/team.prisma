@@ -1,19 +1,22 @@
 model Team {
-  id       String       @id @default(uuid())
-  status   String       @default("forming") // forming, active, archived
+  id          String   @id @default(uuid())
+  status      String   @default("forming") // forming, active, archived
+  name        String?  @unique
   createdById String
-  createdBy Employee @relation("TeamCreator",fields: [createdById],references: [id])
-  
+  createdBy   Employee @relation("TeamCreator", fields: [createdById], references: [id])
+
   leaderId String
-  leader   Employee @relation("MakeLeader",fields: [leaderId],references: [id])
-  
-  members  TeamMember[]
-  workId String? @unique
-  activeWork    Work? @relation("TeamWork",fields: [workId],references: [id])
-  /* Default fields---------------------------------------------- */
-  isDeleted    Boolean @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt @default(now())
+  leader   Employee @relation("MakeLeader", fields: [leaderId], references: [id])
+
+  members    TeamMember[]
+  workId     String?      @unique
+  activeWork Work?        @relation("TeamWork", fields: [workId], references: [id])
+  /**
+   * Default fields----------------------------------------------
+   */
+  isDeleted  Boolean      @default(false)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @default(now()) @updatedAt
 }
 
 model TeamMember {
@@ -24,9 +27,10 @@ model TeamMember {
   employee   Employee  @relation(fields: [employeeId], references: [id])
   joinedAt   DateTime  @default(now())
   removedAt  DateTime?
-    /* Default fields---------------------------------------------- */
-  isDeleted    Boolean @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt @default(now())
-
+  /**
+   * Default fields----------------------------------------------
+   */
+  isDeleted  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
 }

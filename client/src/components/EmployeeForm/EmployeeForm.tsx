@@ -3,16 +3,19 @@ import type { BaseType, EmployeeType, PositionType } from "../../type"
 import { api } from "../../api"
 import { ROLES } from "../../constants"
 import './EmployeeForm.css'
+import Toast, { TOAST_MSG } from "../Toast/Toast"
 
 
 
 const EmployeeForm = ({ onSuccess }: { onSuccess: () => void }) => {
     const [password, setPassword] = useState<string>('user123')
     const [employeeData, setEmployeeData] = useState<Partial<EmployeeType>>({})
-    const [error, setError] = useState<string>('')
-    const [message, setMessage] = useState<string>('')
     const [basesData, setBasesData] = useState<BaseType[]>([])
     const [positionData, setPositionData] = useState<PositionType[]>([])
+
+    const [toastOpen, setToastOpen] = useState<boolean>(false)
+    const [toastTypeMsg, setToastTypeMsg] = useState<string>('')
+    const [toastMsg, setToastMsg] = useState<string>('')
 
     useEffect(() => {
         const fetchListData = async () => {
@@ -21,10 +24,9 @@ const EmployeeForm = ({ onSuccess }: { onSuccess: () => void }) => {
                 const positions = await api.getPositions()
                 setBasesData(bases.data || [])
                 setPositionData(positions.data || [])
-                setError('')
             } catch (error) {
-                setError("Ошибка загрузки справочников.")
-                setMessage('')
+                setToastTypeMsg(TOAST_MSG.ERROR)
+                setToastMsg("Ошибка загрузки справочников.")
             }
         }
         fetchListData()
@@ -34,26 +36,28 @@ const EmployeeForm = ({ onSuccess }: { onSuccess: () => void }) => {
         e.preventDefault()
         try {
             const data = { ...employeeData, password }
-            await api.createEmployee(data)
-            console.log(data)
-            setMessage('Пользователь создан успешно.')
+            const response = await api.createEmployee(data)
+            setToastTypeMsg(TOAST_MSG.INFORMATION)
+            setToastMsg(response.message)
+            setToastOpen(true)
             setTimeout(() => {
                 onSuccess?.();
-                setMessage('')
             }, 2000)
             setEmployeeData({})
             setPassword('admin123')
 
-        } catch (error) {
-            setError('Ошибка при сохранении пользователя..')
+        } catch (error: any) {
+            setToastOpen(true)
+            setToastTypeMsg(TOAST_MSG.ERROR)
+            setToastMsg(error.message)
         }
     }
 
     return (
         <div className="wrapper">
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            {message && <p style={{ color: 'green' }}>{message}</p>}
+            <Toast isOpen={toastOpen} message={toastMsg} messageTitle={toastTypeMsg} onClose={() => setToastOpen(false)} autoCloseTime={4000} ></Toast>
             <div className="employee-form-flex">
+                <h2>Создать пользователя</h2>
                 <form onSubmit={handleSubmit}>
                     <label htmlFor="fullname">ФИО</label>
                     <input type="text" id="fullname" value={employeeData.fullName || ''} onChange={(e) => setEmployeeData({ ...employeeData, fullName: e.target.value })} />
