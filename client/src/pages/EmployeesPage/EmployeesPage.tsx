@@ -1,67 +1,128 @@
 import { useEffect, useState } from "react"
-import type { EmployeeType, PositionType } from "../../type"
+import type { EmployeeType } from "../../type"
 import { api } from "../../api"
 import Modal from "../../components/Modal/Modal"
 import EmployeeForm from "../../components/EmployeeForm/EmployeeForm"
 import Toast, { TOAST_MSG } from "../../components/Toast/Toast"
 import { ENTITY, MSG } from "../../constants"
 import './EmployeesPage.css'
+import ConfirmModal from "../../components/ConfirmModal/ConfirmModal"
+import { FiEdit, FiLock, FiUnlock, FiTrash2 } from 'react-icons/fi'
 
 const EmployeesPage = () => {
     const [employees, setEmployees] = useState<EmployeeType[]>([])
     const [modalOpen, setModalOpen] = useState<boolean>(false)
+
     const [toastOpen, setToastOpen] = useState<boolean>(false)
     const [toastTypeMsg, setToastTypeMsg] = useState<string>('')
     const [toastMsg, setToastMsg] = useState<string>('')
 
-    useEffect(() => {
-        const fetchEmployees = async () => {
-            try {
-                const response = await api.getEmployees();
-                setEmployees(response.data || []);
-                // setToastTypeMsg(TOAST_MSG.INFORMATION)
-                // setToastMsg(response.message)
-                // setToastOpen(true)
+    const [confirmOpen, setConfirmOpen] = useState<boolean>(false)
+    const [selectedEmployee, setSelectedEmployee] = useState<EmployeeType | undefined>()
 
-            } catch (error) {
-                setToastTypeMsg(TOAST_MSG.ERROR)
-                setToastMsg(MSG.ENTITY_WAS_READ(ENTITY.EMPLOYEE))
-                setToastOpen(true)
-            }
-        };
+    const [editingEmployee, setEditingEmployee] = useState<EmployeeType | null>()
+
+    useEffect(() => {
         fetchEmployees();
     }, []);
+
+    const showToast = (title: string, message: string) => {
+        setToastTypeMsg(title);
+        setToastMsg(message);
+        setToastOpen(true);
+    }
 
     const fetchEmployees = async () => {
         const response = await api.getEmployees();
         setEmployees(response.data || []);
     };
+
+    const deleteEmployee = async (id: string | undefined) => {
+        if (!id) return;
+        await api.deleteEmployee(id)
+    }
+
+    const toggleLockEmployee = async (id: string) => {
+        await api.toggleBlockEmployee(id)
+    }
+
     return (
         <div className="wrapper">
-            <Modal isOpen={modalOpen} onclose={() => setModalOpen(false)}>
-                <EmployeeForm onSuccess={() => {
-                    setToastTypeMsg(TOAST_MSG.INFORMATION);
-                    setToastMsg(MSG.ENTITY_WAS_CREATED(ENTITY.EMPLOYEE, 0));
-                    setToastOpen(true);
+            <Modal isOpen={modalOpen} onclose={() => {
+                setModalOpen(false)
+                setEditingEmployee(null)
+            }}>
+                <EmployeeForm initData={editingEmployee} onSuccess={() => {
+                    showToast(TOAST_MSG.INFORMATION,
+                        editingEmployee ?
+                            MSG.ENTITY_WAS_UPDATED(ENTITY.EMPLOYEE, editingEmployee.fullName) :
+                            MSG.ENTITY_WAS_CREATED(ENTITY.EMPLOYEE, selectedEmployee?.fullName))
                     setModalOpen(false)
+                    setEditingEmployee(null)
                     fetchEmployees()
                 }
                 }>
                 </EmployeeForm>
             </Modal>
-            <Toast isOpen={toastOpen} onClose={() => setToastOpen(false)} message={toastMsg} messageTitle={toastTypeMsg} autoCloseTime={4000}></Toast>
+            <Toast
+                isOpen={toastOpen}
+                onClose={() => setToastOpen(false)}
+                message={toastMsg}
+                messageTitle={toastTypeMsg}
+                autoCloseTime={4000}>
+            </Toast>
+            <ConfirmModal
+                isOpen={confirmOpen}
+                message="Вы действительно хотите удалить?"
+                title="Удаление элемента."
+                onClose={() => setConfirmOpen(false)}
+                onConfirm={async (confirm) => {
+                    if (confirm) {
+                        try {
+                            await deleteEmployee(selectedEmployee.employeeId)
+                            fetchEmployees()
+                            showToast(TOAST_MSG.INFORMATION, MSG.ENTITY_WAS_HARD_DELETED(ENTITY.EMPLOYEE, selectedEmployee.fullName))
+                        } catch (error: any) {
+                            console.log(selectedEmployee.employeeId)
+                            showToast(TOAST_MSG.ERROR, error.message)
+                        }
+                    }
+                }} >
+            </ConfirmModal>
 
-            <button type="submit" onClick={() => setModalOpen(true)}>Создать сотрудника</button>
+            <button type="button" onClick={() => setModalOpen(true)}>Создать сотрудника</button>
             <div className="grid-cards-employees">
                 {employees.map((employee) => (
                     <div className="card-employee" key={employee.id}>
                         <h6>{employee.fullName}</h6>
                         <span>{employee.position.name}</span>
+                        <div className="card-footer">
+                            <div className="card_footer-icon-list">
+                                <button title="Заблокировать" onClick={async () => {
+                                    try {
+                                        await toggleLockEmployee(employee.employeeId)
+                                        fetchEmployees()
+                                        showToast(TOAST_MSG.INFORMATION, (employee.isBlocked ? 'Разблокирован' : 'Заблокирован') + ' сотрудник :' + employee.fullName)
+                                    } catch (error: any) {
+                                        showToast(TOAST_MSG.ERROR, error.message)
+                                    }
+                                }}>
+                                    {employee.isBlocked ? <FiLock size={32}/> : <FiUnlock size={32} />}</button>
+                                <button title="Редактировать" onClick={() => {
+                                    setEditingEmployee(employee),
+                                        setModalOpen(true)
+                                }}><FiEdit size={32}/></button>
+                                <button title="Удалить" onClick={() => {
+                                    setSelectedEmployee(employee)
+                                    setConfirmOpen(true)
+                                }}><FiTrash2 size={32}/></button>
+                            </div>
+                        </div>
                     </div>
                 ))}
             </div>
 
-        </div>
+        </div >
     )
 }
 

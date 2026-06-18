@@ -5,9 +5,13 @@ import { ROLES } from "../../constants"
 import './EmployeeForm.css'
 import Toast, { TOAST_MSG } from "../Toast/Toast"
 
+interface EmployeeFormProps {
+    onSuccess: () => void;
+    initData?: EmployeeType
+}
 
 
-const EmployeeForm = ({ onSuccess }: { onSuccess: () => void }) => {
+const EmployeeForm = ({ onSuccess, initData }: EmployeeFormProps) => {
     const [password, setPassword] = useState<string>('user123')
     const [employeeData, setEmployeeData] = useState<Partial<EmployeeType>>({})
     const [basesData, setBasesData] = useState<BaseType[]>([])
@@ -29,22 +33,41 @@ const EmployeeForm = ({ onSuccess }: { onSuccess: () => void }) => {
                 setToastMsg("Ошибка загрузки справочников.")
             }
         }
+
+        if (initData) {
+            setEmployeeData(initData)
+        }
         fetchListData()
-    }, [])
+    }, [initData])
 
     const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
         e.preventDefault()
+        let response;
+        const { id, createdAt, updatedAt, position, base, isDeleted, isBlocked, ...cleanData } = employeeData;
+        const data: any = { ...cleanData };
         try {
-            const data = { ...employeeData, password }
-            const response = await api.createEmployee(data)
+            if (initData) {
+                if (password && password !== 'user123') {
+                    data.password = password
+                }
+                console.log(data)
+                console.log(password)
+                response = await api.updateEmployee(initData.employeeId, data)
+            } else {
+                data.password = password
+                response = await api.createEmployee(data)
+
+            }
+
+
             setToastTypeMsg(TOAST_MSG.INFORMATION)
             setToastMsg(response.message)
             setToastOpen(true)
             setTimeout(() => {
+                setEmployeeData({})
+                setPassword('admin123')
                 onSuccess?.();
             }, 2000)
-            setEmployeeData({})
-            setPassword('admin123')
 
         } catch (error: any) {
             setToastOpen(true)
@@ -57,7 +80,7 @@ const EmployeeForm = ({ onSuccess }: { onSuccess: () => void }) => {
         <div className="wrapper">
             <Toast isOpen={toastOpen} message={toastMsg} messageTitle={toastTypeMsg} onClose={() => setToastOpen(false)} autoCloseTime={4000} ></Toast>
             <div className="employee-form-flex">
-                <h2>Создать пользователя</h2>
+                <h2>{initData ? 'Обновить данные о пользователе' : 'Создать пользователя'}</h2>
                 <form onSubmit={handleSubmit}>
                     <label htmlFor="fullname">ФИО</label>
                     <input type="text" id="fullname" value={employeeData.fullName || ''} onChange={(e) => setEmployeeData({ ...employeeData, fullName: e.target.value })} />
@@ -73,7 +96,7 @@ const EmployeeForm = ({ onSuccess }: { onSuccess: () => void }) => {
                         }
                     </select>
                     <label htmlFor="employeeId">EXXXXXX</label>
-                    <input type="text" id="employeeId" value={employeeData.employeeId || ''} onChange={(e) => setEmployeeData({ ...employeeData, employeeId: e.target.value })} />
+                    <input type="text" id="employeeId" disabled={!!initData} value={employeeData.employeeId || ''} onChange={(e) => setEmployeeData({ ...employeeData, employeeId: e.target.value })} />
                     <label htmlFor="email">Почта</label>
                     <input type="text" id="email" value={employeeData.email || ''} onChange={(e) => setEmployeeData({ ...employeeData, email: e.target.value })} />
                     <label htmlFor="phone">Телефон</label>
@@ -93,7 +116,7 @@ const EmployeeForm = ({ onSuccess }: { onSuccess: () => void }) => {
                             <option key={role} value={role}>{role}</option>
                         ))}
                     </select>
-                    <button type="submit"> Создать</button>
+                    <button type="submit"> {initData ? 'Обновить' : 'Создать'}</button>
                 </form>
             </div>
         </div>

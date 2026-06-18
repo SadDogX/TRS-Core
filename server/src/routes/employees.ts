@@ -144,7 +144,6 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
         }
         data.passwordHash = await bcrypt.hash(password, 10);
       }
-
       const updated = await prisma.employee.update({
         where: { employeeId: req.params.id },
         data,
@@ -215,7 +214,7 @@ router.patch('/:id/toggle-block', authenticate, requireRole(ROLES.ADMIN, ROLES.C
   }
 });
 /* ------------------------------- SOFT DELETE ------------------------------ */
-router.delete('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
+router.delete('/:id/soft', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
   try {
     const updated = await prisma.employee.update({
       where: { employeeId: req.params.id },

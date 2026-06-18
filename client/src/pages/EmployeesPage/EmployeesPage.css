@@ -1,23 +1,60 @@
-.wrapper{
+.wrapper {
     display: flex;
     flex-direction: column;
     gap: 10px;
+
     & button {
         margin: 20px;
     }
 }
-.grid-cards-employees{
+
+.grid-cards-employees {
     margin-top: 50px;
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap:15px;
-    
+    gap: 15px;
+
 
 }
-.card-employee{
-    background-color:#333645;
+
+.card-employee {
+    background-color: #333645;
     min-width: 200px;
     min-height: 150px;
     border-radius: 10px;
-    
+
+}
+
+/* Icons */
+
+.card-footer {
+    position: relative;
+    width: 100%;
+    padding: 5px 20px;
+}
+
+.card_footer-icon-list {
+    display: flex;
+    gap: 8px;
+    width: 50%;
+    min-width: fit-content;
+    color: inherit;
+
+    & button {
+        background: none;
+        border: none;
+        cursor: pointer;
+
+        &:nth-child(1) {
+            color: #f39c12;
+        }
+
+        &:nth-child(2) {
+            color: #3efecd;
+        }
+
+        &:nth-child(3) {
+            color: #e74c3c;
+        }
+    }
 }

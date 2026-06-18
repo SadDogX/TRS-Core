@@ -1,0 +1,52 @@
+.overlay {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    justify-content: center;
+    align-items: center;
+    background-color: #000000a0;
+    z-index: 2000;
+
+}
+
+.confirm-modal {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px #00000033;
+    & .title {
+        text-align: left;
+    }
+    & .message{
+        color: #333;
+    }
+}
+
+.footer-buttons {
+    margin: 20px 20px 10px 20px;
+    display: flex;
+    justify-content: space-between;
+
+    & button {
+        border-radius: 5px;
+        border:  none;
+        cursor: pointer;
+        padding: 6px 16px;
+        box-shadow: 0 2px 4px #0000001a;
+        transition: background-color 0.2s
+    }
+
+    & .btn_ok {
+        background-color: #28a745;
+        color: white;
+        font-weight: bold;
+    }
+
+    & .btn_cancel {
+        background-color: #6c757d;
+        color: white;
+    }
+}

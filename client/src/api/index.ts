@@ -42,6 +42,8 @@ export const api = {
     getEmployee: (id: string) => api.request<EmployeeType>(`/employees/${id}`),
     createEmployee: (data: any) => api.request<EmployeeType>('/employees', { method: 'POST', body: JSON.stringify(data) }),
     updateEmployee: (id: string, data: any) => api.request<EmployeeType>(`/employees/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteEmployee:(id:string)=>api.request<EmployeeType>(`/employees/${id}/hard`,{method:"DELETE"}),
+    toggleBlockEmployee:(id:string)=>api.request<EmployeeType>(`/employees/${id}/toggle-block`,{method:"PATCH"}),
     //Base
     getBases:()=> api.request<BaseType[]>('/bases'),
     //Position
