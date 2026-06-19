@@ -37,7 +37,7 @@ router.post('/login', async (req: Request, res: Response) => {
     );
 
     const { passwordHash, ...user } = employee;
-    res.json({ token, user });
+    res.json({ data:{token, user} });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: MSG.SERVER_ERROR });

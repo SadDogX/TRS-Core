@@ -36,11 +36,9 @@ router.post('/', authenticate, requireRole(ROLES.ADMIN), async (req: Request, re
       return res.status(400).json({ error: MSG.REQ_FIELD_PHONE });
     }
 
-    if (!phone) {
-      const existingPhone = await prisma.employee.findUnique({ where: { phone } });
-      if (existingPhone) {
-        return res.status(400).json({ error: `Телефон : ${existingPhone.phone} уже используется у пользователя - ${existingPhone.fullName}` });
-      }
+    const existingPhone = await prisma.employee.findUnique({ where: { phone } });
+    if (existingPhone) {
+      return res.status(400).json({ error: `Телефон : ${existingPhone.phone} уже используется у пользователя - ${existingPhone.fullName}` });
     }
 
 
@@ -72,12 +70,17 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     const { baseId, role, isBlocked } = req.query;
     const where: any = {};
 
+
     if (req.user.role === ROLES.WORKER) {
       where.employeeId = req.user.employeeId;
     } else {
       if (baseId) where.baseId = String(baseId);
       if (role) where.role = String(role);
       if (isBlocked !== undefined) where.isBlocked = String(isBlocked) === 'true';
+    }
+
+    if (req.user.role !== ROLES.ADMIN && req.user.role !== ROLES.WORKER) {
+      where.isDeleted = false;
     }
 
     const employees = await prisma.employee.findMany(

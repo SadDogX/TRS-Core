@@ -2,12 +2,17 @@ import { type PositionType, type ApiResponse, type BaseType, type EmployeeType }
 
 const API_URL = 'http://localhost:3000/api';
 
+interface LoginResponse {
+    token: string;
+    user: EmployeeType;
+}
+
 export const api = {
     getToken: () => localStorage.getItem('token'),
     setToken: (token: string) => localStorage.setItem('token', token),
     clearToken: () => localStorage.removeItem('token'),
 
-    async request<T>(path: string, options: RequestInit = {}):Promise<ApiResponse<T>>{
+    async request<T>(path: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
         const token = this.getToken();
         const headers: any = {
             'Content-Type': 'application/json',
@@ -19,33 +24,33 @@ export const api = {
             this.clearToken();
             window.location.href = '/login';
         }
-        const data  = await res.json()
-        if (!res.ok){
-            throw new Error(data.error||'Ошибка сервера')
+        const data = await res.json()
+        if (!res.ok) {
+            throw new Error(data.error || 'Ошибка сервера')
         }
         return data;
     },
 
     // Auth
     login: (data: { employeeId: string; password: string }) =>
-        api.request('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
-    
+        api.request<LoginResponse>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
+
     async getMe(): Promise<EmployeeType> {
         const token = api.getToken();
         if (!token) return Promise.reject('No token');
         const payload = JSON.parse(atob(token.split('.')[1]));
-        const response =await api.request<EmployeeType>(`/employees/${payload.employeeId}`);
-        return  response.data||response as any
+        const response = await api.request<EmployeeType>(`/employees/${payload.employeeId}`);
+        return response.data || response as any
     },
     // Employees
     getEmployees: () => api.request<EmployeeType[]>('/employees'),
     getEmployee: (id: string) => api.request<EmployeeType>(`/employees/${id}`),
     createEmployee: (data: any) => api.request<EmployeeType>('/employees', { method: 'POST', body: JSON.stringify(data) }),
     updateEmployee: (id: string, data: any) => api.request<EmployeeType>(`/employees/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    deleteEmployee:(id:string)=>api.request<EmployeeType>(`/employees/${id}/hard`,{method:"DELETE"}),
-    toggleBlockEmployee:(id:string)=>api.request<EmployeeType>(`/employees/${id}/toggle-block`,{method:"PATCH"}),
+    deleteEmployee: (id: string) => api.request<EmployeeType>(`/employees/${id}/hard`, { method: "DELETE" }),
+    toggleBlockEmployee: (id: string) => api.request<EmployeeType>(`/employees/${id}/toggle-block`, { method: "PATCH" }),
     //Base
-    getBases:()=> api.request<BaseType[]>('/bases'),
+    getBases: () => api.request<BaseType[]>('/bases'),
     //Position
-    getPositions:()=> api.request<PositionType[]>('/positions')
+    getPositions: () => api.request<PositionType[]>('/positions')
 };

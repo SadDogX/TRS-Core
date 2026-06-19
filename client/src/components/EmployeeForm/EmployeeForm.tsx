@@ -56,18 +56,13 @@ const EmployeeForm = ({ onSuccess, initData }: EmployeeFormProps) => {
             } else {
                 data.password = password
                 response = await api.createEmployee(data)
-
             }
 
-
-            setToastTypeMsg(TOAST_MSG.INFORMATION)
-            setToastMsg(response.message)
-            setToastOpen(true)
             setTimeout(() => {
                 setEmployeeData({})
                 setPassword('admin123')
                 onSuccess?.();
-            }, 2000)
+            }, 500)
 
         } catch (error: any) {
             setToastOpen(true)
