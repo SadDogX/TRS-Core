@@ -28,7 +28,6 @@ const TeamForm = ({ onSuccess, initData }: TeamFormProps) => {
             try {
                 setOwner(auth.user)
                 setemployees((await api.getEmployees()).data)
-                // const work = await api.getWork()
             } catch (error) {
                 setToastTypeMsg(TOAST_MSG.ERROR)
                 setToastMsg("Ошибка загрузки справочников.")
@@ -72,7 +71,7 @@ const TeamForm = ({ onSuccess, initData }: TeamFormProps) => {
     return (
         <div className={style.wrapper}>
             <Toast isOpen={toastOpen} message={toastMsg} messageTitle={toastTypeMsg} onClose={() => setToastOpen(false)} autoCloseTime={4000} />
-            <div className={style.employeeFormFlex}>
+            <div className={style.formFlex}>
                 <h2>{initData ? 'Обновить данные бригады' : 'Создать бригаду'}</h2>
                 <form onSubmit={handleSubmit}>
                     <label htmlFor="name">Название</label>

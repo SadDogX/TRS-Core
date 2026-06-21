@@ -7,8 +7,6 @@ model Work {
   workTypeId   Int 
   workType     WorkType? @relation("WorkTypes",fields: [workTypeId],references: [id])
   team         Team?             @relation("TeamWork")
-  supervisorId String
-  supervisor   Employee         @relation("WorkSupervisor", fields: [supervisorId], references: [id])
   assignments  WorkAssignment[]
   /* Default fields---------------------------------------------- */
   isDeleted    Boolean @default(false)

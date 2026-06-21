@@ -56,6 +56,7 @@ router.post("/:workId/assignments", authenticate, requireRole(ROLES.COORDINATOR)
         res.status(201).json({ message: MSG.ENTITY_WAS_CREATED(ENTITY.WORK_ASSIGNMENT,assignment.id), data: assignment })
 
     } catch (error) {
+        console.error('POST /api/works/:workId/assignments:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
 
     }
@@ -99,6 +100,7 @@ router.get('/:workId/assignments', authenticate, requireRole(ROLES.ADMIN, ROLES.
         res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.WORK_ASSIGNMENT), data: result })
 
     } catch (error) {
+        console.error('GET /api/works/:workId/assignments:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
 
     }
@@ -145,6 +147,7 @@ router.get('/:workId/assignments/:id', authenticate, requireRole(ROLES.ADMIN, RO
         res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.WORK_ASSIGNMENT), data: result })
 
     } catch (error) {
+        console.error('GET /api/works/:workId/assignments/:id:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
 
     }
@@ -184,6 +187,7 @@ router.patch('/:workId/updaterole/:id', authenticate, requireRole(ROLES.COORDINA
         res.status(200).json({ message: MSG.ENTITY_WAS_UPDATED(ENTITY.WORK_ASSIGNMENT,assignment.id),data:assignment })
 
     } catch (error) {
+        console.error('PATCH /api/works/:workId/updaterole/:id:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
@@ -206,6 +210,7 @@ router.delete('/:workId/assignments/:id/hard', authenticate, requireRole(ROLES.A
         })
         res.status(200).json({ message: MSG.ENTITY_WAS_HARD_DELETED(ENTITY.WORK_ASSIGNMENT,req.params.id) })
     } catch (error) {
+        console.error('DELETE /api/works/:workId/assignments/:id/hard:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
@@ -233,6 +238,7 @@ router.delete('/:workId/assignments/:id/soft', authenticate, requireRole(ROLES.A
         })
         res.status(200).json({ message: MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.WORK_ASSIGNMENT,req.params.id) })
     } catch (error) {
+        console.error('DELETE /api/works/:workId/assignments/:id/soft:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
@@ -260,6 +266,7 @@ router.patch('/:workId/assignments/:id/restore', authenticate, requireRole(ROLES
         })
         res.status(200).json({ message: MSG.ENTITY_WAS_RESTORE(ENTITY.WORK_ASSIGNMENT,req.params.id) })
     } catch (error) {
+        console.error('PATCH /api/works/:workId/assignments/:id/restore:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })

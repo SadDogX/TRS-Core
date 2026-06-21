@@ -1,4 +1,4 @@
-import { type PositionType, type ApiResponse, type BaseType, type EmployeeType, type TeamType } from "../type";
+import { type PositionType, type ApiResponse, type BaseType, type EmployeeType, type TeamType, type WorkType, type WorkListType } from "../type";
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -49,15 +49,23 @@ export const api = {
     updateEmployee: (id: string, data: any) => api.request<EmployeeType>(`/employees/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     toggleBlockEmployee: (id: string) => api.request<EmployeeType>(`/employees/${id}/toggle-block`, { method: "PATCH" }),
     deleteEmployee: (id: string) => api.request<EmployeeType>(`/employees/${id}/hard`, { method: "DELETE" }),
+    //Teams
+    createTeam: (data: any) => api.request<TeamType>('/team', { method: 'POST', body: JSON.stringify(data) }),
+    getTeams: () => api.request<TeamType[]>('/team'),
+    getTeam: (id: string) => api.request<TeamType>(`/team/${id}`),
+    updateTeam: (id: string, data: any) => api.request<TeamType>(`/team/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteTeam: (id: string) => api.request<TeamType>(`/team/${id}/hard`, { method: 'DELETE' }),
+    
+    //Work
+    createWork: (data: any) => api.request<WorkType>('/works', { method: 'POST', body: JSON.stringify(data) }),
+    getWorks: () => api.request<WorkType[]>('/works'),
+    getWorkTypes: () => api.request<WorkListType[]>('/works/types'),
+    getWork: (id: string) => api.request<WorkType>(`/works/${id}`),
+    updateWork: (id: string, data: any) => api.request<WorkType>(`/works/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteWork: (id: string) => api.request<WorkType>(`/works/${id}/hard`, { method: 'DELETE' }),
+    
     //Base
     getBases: () => api.request<BaseType[]>('/bases'),
     //Position
     getPositions: () => api.request<PositionType[]>('/positions'),
-    //Teams
-    createTeam:(data:any)=>api.request<TeamType>('/team',{method:'POST',body:JSON.stringify(data)}),
-    getTeams:() =>api.request<TeamType[]>('/team'),
-    getTeam:(id:string) =>api.request<TeamType>(`/team/${id}`),
-    updateTeam:(id: string, data: any) =>api.request<TeamType>(`/team/${id}`,{method:'PUT',body:JSON.stringify(data)}),
-    deleteTeam:(id:string)=>api.request<TeamType>(`/team/${id}/hard`,{method:'DELETE'})
-    
 };

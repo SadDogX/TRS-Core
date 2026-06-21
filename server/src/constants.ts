@@ -87,6 +87,8 @@ export const MSG = {
     /* ----------------------------- WORK_ASSIGNMENT ---------------------------- */
     WORK_ASSIGNMENT_ALREADY_EXISTS: "Дублирующая запись.",
     WORK_ASSIGNMENT_EMPLOYEES_ENOUGHT: "Бригада укомплектована.",
+    WORK_TYPES_IS_LOADING:'Типы работ загружены успешно',
+    WORK_TYPES_NO_DATA:'Отсутствуют данные по типам работ в БД.',
     /* ------------------------------- VALIDATION ------------------------------- */
     SERVER_ERROR: "Ошибка сервера",
 

@@ -39,8 +39,7 @@ router.post('/', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), asyn
 
 
     } catch (error) {
-        console.log(MSG.SERVER_ERROR)
-        console.log(error)
+        console.error('POST /api/teams:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
@@ -87,7 +86,7 @@ router.post('/:teamId/members', authenticate, requireRole(ROLES.COORDINATOR, ROL
         })
         res.status(200).json({ message: MSG.ENTITY_WAS_CREATED(ENTITY.TEAM, teamId), data: member })
     } catch (error) {
-        console.log(error)
+        console.error('POST /api/teams/:teamId/members:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
@@ -149,7 +148,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
 
         }
     } catch (error) {
-        console.log(error)
+        console.error('GET /api/teams:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
@@ -167,7 +166,7 @@ router.get('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
         }
         res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.TEAM), data: team });
     } catch (error) {
-        console.log(error)
+        console.error('GET /api/teams/:id:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
@@ -213,7 +212,7 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
 
         res.json({ message: MSG.ENTITY_WAS_UPDATED(ENTITY.TEAM, updat_target.id) })
     } catch (error) {
-        console.log(error)
+        console.error('PUT /api/teams/:id:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
@@ -229,7 +228,7 @@ router.delete('/:id/hard', authenticate, requireRole(ROLES.ADMIN), async (req: R
         if (error.code === "P2025") {
             return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.TEAM, req.params.id) })
         }
-        console.log(error)
+        console.error('DELETE /api/teams/:id/hard:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
@@ -259,7 +258,7 @@ router.delete('/:id/soft', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINA
             return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.TEAM, req.params.id) })
         }
 
-        console.log(error)
+        console.error('DELETE /api/teams/:id/soft:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
@@ -283,7 +282,7 @@ router.patch("/:id/restore", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDI
         if (error.code === "P2025") {
             return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.TEAM, req.params.id) })
         }
-        console.log(error)
+        console.error('PATCH /api/teams/:id/restore:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
@@ -343,7 +342,7 @@ router.patch('/:id/assign', authenticate, requireRole(ROLES.COORDINATOR), async 
         res.status(200).json({ message: MSG.TEAM_ASSIGNED_TO_WORK, count: assignment_team.count });
 
     } catch (error) {
-        console.log(MSG.SERVER_ERROR)
+        console.error('PATCH /api/teams/:id/assign:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
@@ -374,6 +373,7 @@ router.patch("/:id/unassign", authenticate, requireRole(ROLES.ADMIN, ROLES.COORD
 
         res.status(200).json({ message: MSG.TEAM_ASSIGNED_TO_WORK });
     } catch (error: any) {
+        console.error('PATCH /api/teams/:id/unassign:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })

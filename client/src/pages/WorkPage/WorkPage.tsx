@@ -1,30 +1,30 @@
 import { useEffect, useState } from "react"
-import type { EmployeeType, TeamType } from "../../type"
+import type { WorkType } from "../../type"
 import { api } from "../../api"
 import Modal from "../../components/Modal/Modal"
 import Toast, { TOAST_MSG } from "../../components/Toast/Toast"
-import { ENTITY, MSG, TEAM_STATUS_COLOR } from "../../constants"
-import style from './TeamPage.module.css'
+import { ENTITY, MSG, WORK_STATUS_COLORS } from "../../constants"
+import style from './WorkPage.module.css'
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal"
 import { FiEdit, FiTrash2 } from 'react-icons/fi'
-import TeamForm from "../../components/TeamForm/TeamForm"
+import WorkForm from "../../components/WorkForm/WorkForm"
 
-const TeamPage = () => {
-    const [teams, setTeam] = useState<TeamType[]>([])
-    const [employees, setEmployees] = useState<EmployeeType[]>([])
+const WorkPage = () => {
     const [modalOpen, setModalOpen] = useState<boolean>(false)
+    const [confirmOpen, setConfirmOpen] = useState<boolean>(false)
 
     const [toastOpen, setToastOpen] = useState<boolean>(false)
     const [toastTypeMsg, setToastTypeMsg] = useState<string>('')
     const [toastMsg, setToastMsg] = useState<string>('')
 
-    const [confirmOpen, setConfirmOpen] = useState<boolean>(false)
-    const [selectedTeam, setSelectedTeam] = useState<TeamType | undefined>()
+    const [works, setWorks] = useState<WorkType[]>([])
+    
 
-    const [editingTeam, setEditingTeam] = useState<TeamType | null>()
+    const [selectedWork, setSelectedWork] = useState<WorkType | undefined>()
+    const [editingWork, setEditingWork] = useState<WorkType | null>()
 
     useEffect(() => {
-        fetchTeam();
+        fetchWork();
     }, []);
 
     const showToast = (title: string, message: string) => {
@@ -33,17 +33,14 @@ const TeamPage = () => {
         setToastOpen(true);
     }
 
-    const fetchTeam = async () => {
-        const response = await api.getTeams();
-        const employees = await api.getEmployees()
-        console.log(employees)
-        setEmployees(employees.data || [])
-        setTeam(response.data || []);
+    const fetchWork = async () => {
+        const response = await api.getWorks();
+        setWorks(response.data || []);
     };
 
-    const deleteTeam = async (id: string | undefined) => {
+    const deleteWork = async (id: string | undefined) => {
         if (!id) return;
-        await api.deleteTeam(id)
+        await api.deleteWork(id)
     }
 
 
@@ -52,19 +49,19 @@ const TeamPage = () => {
         <div className={style.wrapper}>
             <Modal isOpen={modalOpen} onclose={() => {
                 setModalOpen(false)
-                setEditingTeam(null)
+                setEditingWork(null)
             }}>
-                <TeamForm initData={editingTeam} onSuccess={() => {
+                <WorkForm initData={editingWork} onSuccess={() => {
                     showToast(TOAST_MSG.INFORMATION,
-                        editingTeam ?
-                            MSG.ENTITY_WAS_UPDATED(ENTITY.TEAM, editingTeam.name) :
-                            MSG.ENTITY_WAS_CREATED(ENTITY.TEAM, selectedTeam?.name))
+                        editingWork ?
+                            MSG.ENTITY_WAS_UPDATED(ENTITY.WORK, editingWork.name) :
+                            MSG.ENTITY_WAS_CREATED(ENTITY.WORK, selectedWork?.name))
                     setModalOpen(false)
-                    setEditingTeam(null)
-                    fetchTeam()
+                    setEditingWork(null)
+                    fetchWork()
                 }
                 }>
-                </TeamForm>
+                </WorkForm>
             </Modal>
             <Toast
                 isOpen={toastOpen}
@@ -81,9 +78,9 @@ const TeamPage = () => {
                 onConfirm={async (confirm) => {
                     if (confirm) {
                         try {
-                            await deleteTeam(selectedTeam.id)
-                            fetchTeam()
-                            showToast(TOAST_MSG.INFORMATION, MSG.ENTITY_WAS_HARD_DELETED(ENTITY.TEAM, selectedTeam.id))
+                            await deleteWork(selectedWork.id)
+                            fetchWork()
+                            showToast(TOAST_MSG.INFORMATION, MSG.ENTITY_WAS_HARD_DELETED(ENTITY.TEAM, selectedWork.id))
                         } catch (error: any) {
                             showToast(TOAST_MSG.ERROR, error.message)
                         }
@@ -94,22 +91,21 @@ const TeamPage = () => {
             <button type="button" className={style.fab} onClick={() => setModalOpen(true)}>+</button>
             <div className={style.gridCards}>
                 {
-                    teams.map((team) => (
-                        <div key={team.id} className={style.card}
-                            style={{
-                                color: TEAM_STATUS_COLOR[team.status].color,
-                                background: TEAM_STATUS_COLOR[team.status].bg
-                            }} >
-                            <h3>{team.name}</h3>
-                            <span>{`Бригадир: ${employees.find((employee)=>employee.id===team.leaderId).fullName||'Не назначен'}`}</span>
+                    works.map((work) => (
+                        <div key={work.id} className={style.card} style={{
+                            color:WORK_STATUS_COLORS[work.status].color,
+                            background:WORK_STATUS_COLORS[work.status].bg,
+                        }}>
+                            <h3>{work.name}</h3>
+                            <span>{`Бригадир: ${work.team?.leader?.fullName||'Не назначен'}`}</span>
                             <div className={style.cardFooter}>
                                 <div className={style.cardFooterIconList}>
                                     <button title="Редактировать" onClick={() => {
-                                        setEditingTeam(team),
+                                        setEditingWork(work),
                                             setModalOpen(true)
                                     }}><FiEdit size={32} /></button>
                                     <button title="Удалить" onClick={() => {
-                                        setSelectedTeam(team)
+                                        setSelectedWork(work)
                                         setConfirmOpen(true)
                                     }}><FiTrash2 size={32} /></button>
                                 </div>
@@ -122,4 +118,4 @@ const TeamPage = () => {
     )
 }
 
-export default TeamPage
+export default WorkPage

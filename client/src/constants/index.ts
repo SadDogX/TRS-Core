@@ -29,6 +29,17 @@ export const WORK_STATUSES = {
     REJECTED: 'rejected',
     CLOSED: 'closed'
 } as const
+
+export const WORK_STATUS_COLORS: Record<string, { bg: string; color: string }> = {
+    draft: { bg: '#f1f5f9', color: '#333' },
+    in_progress: { bg: '#3498db', color: '#fff' },
+    completed: { bg: '#f39c12', color: '#fff' },
+    submitted: { bg: '#f39c12', color: '#fff' },
+    approved: { bg: '#e67e22', color: '#fff' },
+    rejected: { bg: '#8f1919', color: '#fff' },
+    closed: { bg: '#27ae60', color: '#fff' },
+} as const;
+
 export const WORK_TYPES = {
     CASING: 'Casing',
     TUBING: 'Tubing',
@@ -51,7 +62,7 @@ export const TEAM_STATUS_COLOR: Record<string, { bg: string; color: string }> = 
     idle: { bg: '#3498db', color: '#fff' },
     maintenance: { bg: 'var(--color-warning)', color: '#fff' },
     archived: { bg: '#95a5a6', color: '#fff' },
-}
+} as const
 export const ENTITY = {
     BASE: 'База',
     EMPLOYEE: 'Сотрудник',

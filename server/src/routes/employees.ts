@@ -60,7 +60,7 @@ router.post('/', authenticate, requireRole(ROLES.ADMIN), async (req: Request, re
     const { passwordHash, ...result } = employee;
     res.status(201).json({ message: MSG.ENTITY_WAS_CREATED(ENTITY.EMPLOYEE, employeeId), data: result });
   } catch (error) {
-    console.error(error);
+    console.error('POST /api/employees:', error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
@@ -95,7 +95,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     const result = employees.map(({ passwordHash, ...rest }) => rest);
     res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.EMPLOYEE), data: result });
   } catch (error) {
-    console.error(error);
+    console.error('GET /api/employees:', error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
@@ -119,10 +119,8 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
     res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.EMPLOYEE), data: result });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      error: MSG.SERVER_ERROR
-    });
+    console.error('GET /api/employees/:id:', error);
+    res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
 /* --------------------------------- UPDATE --------------------------------- */
@@ -189,7 +187,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
 
     return res.status(403).json({ error: MSG.ACCESS_DENIED(ROLESNAME[ROLES.LEADER]) });
   } catch (error) {
-    console.error(error);
+    console.error('PUT /api/employees/:id:', error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
@@ -212,7 +210,7 @@ router.patch('/:id/toggle-block', authenticate, requireRole(ROLES.ADMIN, ROLES.C
 
     res.json({ employeeId: updated.employeeId, isBlocked: updated.isBlocked });
   } catch (error) {
-    console.error(error);
+    console.error('PATCH /api/employees/:id/toggle-block:', error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
@@ -229,7 +227,7 @@ router.delete('/:id/soft', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINA
     if (error.code === 'P2025') {
       return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE, req.params.id) });
     }
-    console.error(error);
+    console.error('DELETE /api/employees/:id/soft', error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
@@ -245,7 +243,7 @@ router.delete('/:id/hard', authenticate, requireRole(ROLES.ADMIN), async (req: R
     if (error.code === 'P2025') {
       return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE, req.params.id) });
     }
-    console.error(error);
+    console.error('DELETE /api/employees/:id/hard:', error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
@@ -263,7 +261,7 @@ router.patch('/:id/restore', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDI
     if (error.code === 'P2025') {
       return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE, req.params.id) });
     }
-    console.error(error);
+    console.error('PATCH /api/employees/:id/restore:', error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });

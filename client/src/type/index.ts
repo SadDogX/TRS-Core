@@ -47,6 +47,7 @@ export type TeamType = {
     name?:string,
     status: string,
     createdById: string,
+    leader:EmployeeType,
     leaderId: string,
     workId?: string,
     isDeleted: boolean,
@@ -74,6 +75,8 @@ export type WorkType = {
     isDeleted: boolean,
     createdAt: string,
     updatedAt: string,
+    workTypes?:WorkListType,
+    team?:TeamType
 }
 
 export type WorkAssignmentType = {

@@ -26,7 +26,7 @@ app.use(express.json());
 app.use('/api/bases', basesRouter);
 app.use('/api/positions', postionsRouter);
 app.use('/api/team',teamRouter);
-app.use('/api/work',workRouter);
+app.use('/api/works',workRouter);
 app.use('/api/workassignment',workAssignments)
 
 app.use('/api/auth', authRouter);

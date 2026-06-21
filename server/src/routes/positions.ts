@@ -19,7 +19,7 @@ router.post("/", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), asyn
         });
         res.status(201).json({ message: MSG.ENTITY_WAS_CREATED(ENTITY.POSITION, newPosition.id), data: newPosition });
     } catch (error) {
-        console.error(error);
+        console.error('POST /api/positions:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR });
     }
 });
@@ -33,7 +33,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.POSITION), data: positions });
 
     } catch (error) {
-        console.error(error);
+        console.error('GET /api/positions:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR });
     }
 });
@@ -49,7 +49,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
         res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.POSITION), data: position });
 
     } catch (error) {
-        console.error(error);
+        console.error('GET /api/positions/:id:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR });
     }
 });
@@ -66,7 +66,7 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
         if (error.code === 'P2025') {
             return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.POSITION, req.params.id) });
         }
-        console.error(error);
+        console.error('PUT /api/positions/:id:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR });
     }
 });
@@ -81,7 +81,7 @@ router.delete('/:id/hard', authenticate, requireRole(ROLES.ADMIN), async (req: R
         if (error.code === 'P2025') {
             return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.POSITION, req.params.id) });
         }
-        console.error(error);
+        console.error('DELETE /api/positions/:id/hard:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR });
     }
 });
@@ -115,7 +115,7 @@ router.delete('/:id/soft', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINA
         if (error.code === 'P2025') {
             return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.POSITION, req.params.id) });
         }
-        console.error(error);
+        console.error('DELETE /api/positions/:id/soft:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR });
     }
 });
@@ -142,7 +142,7 @@ router.patch('/:id/restore', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDI
         if (error.code === 'P2025') {
             return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.POSITION, req.params.id) });
         }
-        console.error(error);
+        console.error('PATCH /api/positions/:id/restore:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR });
     }
 });

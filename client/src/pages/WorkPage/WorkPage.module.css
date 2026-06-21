@@ -1,0 +1,94 @@
+.wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.gridCards {
+    width: 100%;
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.card {
+    background-color: var(--color-surface);
+    /* белый, не тёмный */
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 150px;
+}
+
+/* Icons */
+.cardFooter {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-bg);
+}
+
+.cardFooterIconList {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+
+    & button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        font-size: 18px;
+        transition: color 0.2s;
+
+        &:nth-child(1) {
+            color: var(--color-text-secondary);
+        }
+
+        /* редактировать */
+        &:nth-child(2) {
+            color: #e74c3c;
+        }
+
+        /* удалить */
+
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+}
+
+/* FAB */
+.fab {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    transition: background-color 0.2s, transform 0.2s;
+    z-index: 100;
+}
+
+.fab:hover {
+    background-color: var(--color-accent-hover);
+    transform: scale(1.05);
+}
+
+.fab:active {
+    transform: scale(0.95);
+}
