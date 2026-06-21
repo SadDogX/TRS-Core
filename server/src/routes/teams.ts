@@ -8,7 +8,10 @@ const router = Router()
 /* --------------------------------- Create --------------------------------- */
 router.post('/', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
     try {
-        const { leaderId } = req.body
+        const { leaderId, name, status } = req.body
+        if (!leaderId) {
+            return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE, leaderId) })
+        }
 
         const leader = await prisma.employee.findUnique({
             where: {
@@ -26,16 +29,18 @@ router.post('/', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), asyn
 
         const team = await prisma.team.create({
             data: {
+                name: name?.trim() || null,
                 leaderId: leaderId,
-                createdById: req.user.employeeId,
-                status: TEAM_STATUS.FORMING
+                createdById: req.user.id,
+                status: status || TEAM_STATUS.FORMING
             }
         })
-        res.status(201).json(team)
+        res.status(201).json({ message: MSG.ENTITY_WAS_CREATED(ENTITY.TEAM, team.id), data: team })
 
 
     } catch (error) {
         console.log(MSG.SERVER_ERROR)
+        console.log(error)
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
@@ -87,7 +92,7 @@ router.post('/:teamId/members', authenticate, requireRole(ROLES.COORDINATOR, ROL
     }
 })
 /* ---------------------------------- Read ---------------------------------- */
-router.get('/teams', authenticate, async (req: Request, res: Response) => {
+router.get('/', authenticate, async (req: Request, res: Response) => {
     try {
         const user = req.user
         if (user.role === ROLES.ADMIN) {
@@ -95,7 +100,8 @@ router.get('/teams', authenticate, async (req: Request, res: Response) => {
             if (teams.length === 0) {
                 return res.json({ information: MSG.TBL_IS_EMPTY(ENTITY.TEAM) })
             }
-            res.json(teams)
+            res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.TEAM), data: teams });
+
         }
 
         if (user.role === ROLES.COORDINATOR) {
@@ -108,7 +114,8 @@ router.get('/teams', authenticate, async (req: Request, res: Response) => {
             if (teams.length === 0) {
                 return res.json({ information: MSG.TBL_IS_EMPTY(ENTITY.TEAM) })
             }
-            res.json(teams)
+            res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.TEAM), data: teams });
+
         }
 
         if (user.role === ROLES.LEADER) {
@@ -159,7 +166,6 @@ router.get('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
             return res.json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.TEAM, req.params.id) })
         }
         res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.TEAM), data: team });
-
     } catch (error) {
         console.log(error)
         res.status(500).json({ error: MSG.SERVER_ERROR })
@@ -300,10 +306,10 @@ router.patch('/:id/assign', authenticate, requireRole(ROLES.COORDINATOR), async 
             return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.TEAM, req.params.id) })
         }
         if (!work) {
-            return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,workId) })
+            return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK, workId) })
         }
         if (target.workId) {
-            return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,target.workId) })
+            return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK, target.workId) })
         }
         if (target.members.length == 0) {
             return res.status(404).json({ error: MSG.TBL_IS_EMPTY(ENTITY.TEAM) })
@@ -317,7 +323,7 @@ router.patch('/:id/assign', authenticate, requireRole(ROLES.COORDINATOR), async 
         }
         const workBusy = await prisma.team.findFirst({ where: { workId, isDeleted: false } });
         if (workBusy) {
-            return res.status(400).json({ error: MSG.ENTITY_ALREADY_HAVE(ENTITY.WORK,workBusy.id) });
+            return res.status(400).json({ error: MSG.ENTITY_ALREADY_HAVE(ENTITY.WORK, workBusy.id) });
         }
         await prisma.team.update({
             where: { id: target.id },

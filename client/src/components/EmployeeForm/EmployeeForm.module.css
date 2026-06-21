@@ -1,0 +1,54 @@
+.employeeFormFlex {
+    width: 100%;
+    font-size: var(--font-size-md);
+    padding: 20px;
+}
+
+.employeeFormFlex form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.employeeFormFlex label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-bottom: 2px;
+}
+
+.employeeFormFlex input[type='text'],
+.employeeFormFlex input[type='password'],
+.employeeFormFlex select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: var(--radius);
+    font-size: var(--font-size-md);
+    background-color: #fff;
+    color: var(--color-text);
+    transition: border-color 0.2s;
+}
+
+.employeeFormFlex input[type='text']:focus,
+.employeeFormFlex input[type='password']:focus,
+.employeeFormFlex select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px rgba(93, 127, 183, 0.2);
+}
+
+.employeeFormFlex button[type='submit'] {
+    padding: 12px;
+    border: none;
+    border-radius: var(--radius);
+    background-color: var(--color-accent);
+    color: #fff;
+    font-size: var(--font-size-md);
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 8px;
+}
+
+.employeeFormFlex button[type='submit']:hover {
+    background-color: var(--color-accent-hover);
+}

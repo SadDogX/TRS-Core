@@ -3,19 +3,35 @@
     bottom: 20px;
     right: 20px;
     padding: 16px 24px;
-    border-radius: 8px;
-    color: white;
+    border-radius: var(--radius);
+    color: #fff;
     min-width: 300px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    box-shadow: var(--shadow-md);
     z-index: 2000;
     animation: slideIn 0.3s ease;
+    font-size: var(--font-size-sm);
 }
 
-.error { background: #e74c3c; }
-.warning { background: #f39c12; }
-.info { background: #3498db; }
+.error {
+    background-color: var(--color-error);
+}
+
+.warning {
+    background-color: var(--color-warning);
+}
+
+.info {
+    background-color: var(--color-info);
+}
 
 @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }

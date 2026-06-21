@@ -12,7 +12,7 @@ const Layout = () => {
     return (
         <div className={style.layout}>
             <Header className={style.header} user={user}></Header>
-            <Sidebar className={style.sidebar} ></Sidebar>
+            <Sidebar className={style.sidebar} user={user} ></Sidebar>
             <main className={style.content}>
                 <Outlet />
             </main>

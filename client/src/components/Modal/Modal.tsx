@@ -1,4 +1,5 @@
-import './Modal.css'
+import style from './Modal.module.css'
+
 interface ModalProps {
     isOpen: boolean;
     onclose: () => void;
@@ -10,11 +11,11 @@ const Modal = ({ children, isOpen, onclose }: ModalProps) => {
     if (!isOpen) return null
 
     return (
-        <div className="wrapper-modal" onClick={(e)=>{
+        <div className={style.overlay} onClick={(e)=>{
             if (e.target===e.currentTarget) onclose()
         }
         }>
-            <div className="modal-window" onClick={(e) => e.stopPropagation}>
+            <div className={style.window} onClick={(e) => e.stopPropagation}>
                 {children}
             </div>
         </div>

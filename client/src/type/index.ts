@@ -44,6 +44,7 @@ export type BaseType = {
 
 export type TeamType = {
     id: string,
+    name?:string,
     status: string,
     createdById: string,
     leaderId: string,

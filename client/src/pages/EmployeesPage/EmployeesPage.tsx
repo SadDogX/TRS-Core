@@ -5,7 +5,7 @@ import Modal from "../../components/Modal/Modal"
 import EmployeeForm from "../../components/EmployeeForm/EmployeeForm"
 import Toast, { TOAST_MSG } from "../../components/Toast/Toast"
 import { ENTITY, MSG } from "../../constants"
-import './EmployeesPage.css'
+import style from './EmployeesPage.module.css'
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal"
 import { FiEdit, FiLock, FiUnlock, FiTrash2 } from 'react-icons/fi'
 
@@ -47,7 +47,7 @@ const EmployeesPage = () => {
     }
 
     return (
-        <div className="wrapper">
+        <div className={style.wrapper}>
             <Modal isOpen={modalOpen} onclose={() => {
                 setModalOpen(false)
                 setEditingEmployee(null)
@@ -90,14 +90,14 @@ const EmployeesPage = () => {
                 }} >
             </ConfirmModal>
 
-            <button type="button" onClick={() => setModalOpen(true)}>Создать сотрудника</button>
-            <div className="grid-cards-employees">
+            <button type="button" className={style.fab} onClick={() => setModalOpen(true)}>+</button>
+            <div className={style.gridCardsEmployees}>
                 {employees.map((employee) => (
-                    <div className="card-employee" key={employee.id}>
+                    <div className={style.cardEmployee} key={employee.id}>
                         <h6>{employee.fullName}</h6>
                         <span>{employee.position.name}</span>
-                        <div className="card-footer">
-                            <div className="card_footer-icon-list">
+                        <div className={style.cardFooter}>
+                            <div className={style.cardFooterIconList}>
                                 <button title="Заблокировать" onClick={async () => {
                                     try {
                                         await toggleLockEmployee(employee.employeeId)

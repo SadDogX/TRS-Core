@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import './LoginForm.css'
+import style from './LoginForm.module.css';
 
 const LoginForm = () => {
     const [employeeId, setEmployeeId] = useState('');
@@ -10,7 +10,7 @@ const LoginForm = () => {
     const { login } = useAuth();
     const navigate = useNavigate();
 
-    const handleSubmit = async (e:React.SyntheticEvent<HTMLFormElement,SubmitEvent>) => {
+    const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
         e.preventDefault();
         setError('');
         try {
@@ -22,9 +22,9 @@ const LoginForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form className={style.form} onSubmit={handleSubmit}>
             <h3>Вход в TRS Core</h3>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {error && <p className={style.error}>{error}</p>}
             <input
                 name="employeeId"
                 type="text"
@@ -44,4 +44,4 @@ const LoginForm = () => {
     );
 };
 
-export default LoginForm
+export default LoginForm;

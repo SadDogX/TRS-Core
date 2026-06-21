@@ -1,4 +1,4 @@
-import { type PositionType, type ApiResponse, type BaseType, type EmployeeType } from "../type";
+import { type PositionType, type ApiResponse, type BaseType, type EmployeeType, type TeamType } from "../type";
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -43,14 +43,21 @@ export const api = {
         return response.data || response as any
     },
     // Employees
+    createEmployee: (data: any) => api.request<EmployeeType>('/employees', { method: 'POST', body: JSON.stringify(data) }),
     getEmployees: () => api.request<EmployeeType[]>('/employees'),
     getEmployee: (id: string) => api.request<EmployeeType>(`/employees/${id}`),
-    createEmployee: (data: any) => api.request<EmployeeType>('/employees', { method: 'POST', body: JSON.stringify(data) }),
     updateEmployee: (id: string, data: any) => api.request<EmployeeType>(`/employees/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-    deleteEmployee: (id: string) => api.request<EmployeeType>(`/employees/${id}/hard`, { method: "DELETE" }),
     toggleBlockEmployee: (id: string) => api.request<EmployeeType>(`/employees/${id}/toggle-block`, { method: "PATCH" }),
+    deleteEmployee: (id: string) => api.request<EmployeeType>(`/employees/${id}/hard`, { method: "DELETE" }),
     //Base
     getBases: () => api.request<BaseType[]>('/bases'),
     //Position
-    getPositions: () => api.request<PositionType[]>('/positions')
+    getPositions: () => api.request<PositionType[]>('/positions'),
+    //Teams
+    createTeam:(data:any)=>api.request<TeamType>('/team',{method:'POST',body:JSON.stringify(data)}),
+    getTeams:() =>api.request<TeamType[]>('/team'),
+    getTeam:(id:string) =>api.request<TeamType>(`/team/${id}`),
+    updateTeam:(id: string, data: any) =>api.request<TeamType>(`/team/${id}`,{method:'PUT',body:JSON.stringify(data)}),
+    deleteTeam:(id:string)=>api.request<TeamType>(`/team/${id}/hard`,{method:'DELETE'})
+    
 };
