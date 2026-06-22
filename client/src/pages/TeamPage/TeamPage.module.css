@@ -62,6 +62,9 @@
         }
     }
 }
+.cardIcons{
+    color: var(--color-surface);
+}
 
 /* FAB */
 .fab {

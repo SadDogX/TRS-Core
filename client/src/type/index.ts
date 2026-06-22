@@ -7,7 +7,7 @@ export type ApiResponse<T> = {
 }
 export type EmployeeType = {
     id: string,
-    employeeId: string,
+    employee_Id: string,
     fullName: string,
     email: string,
     phone: string,

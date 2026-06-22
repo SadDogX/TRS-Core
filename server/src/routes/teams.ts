@@ -47,8 +47,8 @@ router.post('/:teamId/members', authenticate, requireRole(ROLES.COORDINATOR, ROL
     try {
         const { employeeId } = req.body
         const { teamId } = req.params
-
-        const employee = await prisma.employee.findUnique({ where: { employeeId: employeeId } })
+        console.log(employeeId)
+        const employee = await prisma.employee.findUnique({ where: { id: employeeId } })
         if (!employee) {
             return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE, employeeId) })
         }

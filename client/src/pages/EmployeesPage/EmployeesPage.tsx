@@ -79,11 +79,11 @@ const EmployeesPage = () => {
                 onConfirm={async (confirm) => {
                     if (confirm) {
                         try {
-                            await deleteEmployee(selectedEmployee.employeeId)
+                            await deleteEmployee(selectedEmployee.employee_Id)
                             fetchEmployees()
                             showToast(TOAST_MSG.INFORMATION, MSG.ENTITY_WAS_HARD_DELETED(ENTITY.EMPLOYEE, selectedEmployee.fullName))
                         } catch (error: any) {
-                            console.log(selectedEmployee.employeeId)
+                            console.log(selectedEmployee.employee_Id)
                             showToast(TOAST_MSG.ERROR, error.message)
                         }
                     }
@@ -100,7 +100,7 @@ const EmployeesPage = () => {
                             <div className={style.cardFooterIconList}>
                                 <button title="Заблокировать" onClick={async () => {
                                     try {
-                                        await toggleLockEmployee(employee.employeeId)
+                                        await toggleLockEmployee(employee.employee_Id)
                                         fetchEmployees()
                                         showToast(TOAST_MSG.INFORMATION, (employee.isBlocked ? 'Разблокирован' : 'Заблокирован') + ' сотрудник :' + employee.fullName)
                                     } catch (error: any) {

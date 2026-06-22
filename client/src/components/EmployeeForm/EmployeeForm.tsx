@@ -49,7 +49,7 @@ const EmployeeForm = ({ onSuccess, initData }: EmployeeFormProps) => {
                 if (password && password !== 'user123') {
                     data.password = password
                 }
-                response = await api.updateEmployee(initData.employeeId, data)
+                response = await api.updateEmployee(initData.employee_Id, data)
             } else {
                 data.password = password
                 response = await api.createEmployee(data)
@@ -89,7 +89,7 @@ const EmployeeForm = ({ onSuccess, initData }: EmployeeFormProps) => {
                     </select>
                     
                     <label htmlFor="employeeId">EXXXXXX</label>
-                    <input type="text" id="employeeId" disabled={!!initData} value={employeeData.employeeId || ''} onChange={(e) => setEmployeeData({ ...employeeData, employeeId: e.target.value })} />
+                    <input type="text" id="employeeId" disabled={!!initData} value={employeeData.employee_Id || ''} onChange={(e) => setEmployeeData({ ...employeeData, employee_Id: e.target.value })} />
                     
                     <label htmlFor="email">Почта</label>
                     <input type="text" id="email" value={employeeData.email || ''} onChange={(e) => setEmployeeData({ ...employeeData, email: e.target.value })} />

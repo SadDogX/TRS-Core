@@ -6,7 +6,7 @@ import Toast, { TOAST_MSG } from "../../components/Toast/Toast"
 import { ENTITY, MSG, WORK_STATUS_COLORS } from "../../constants"
 import style from './WorkPage.module.css'
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal"
-import { FiEdit, FiTrash2 } from 'react-icons/fi'
+import { FiEdit, FiLink, FiLink2, FiTrash2 } from 'react-icons/fi'
 import WorkForm from "../../components/WorkForm/WorkForm"
 
 const WorkPage = () => {
@@ -91,6 +91,7 @@ const WorkPage = () => {
             <button type="button" className={style.fab} onClick={() => setModalOpen(true)}>+</button>
             <div className={style.gridCards}>
                 {
+            /* -------------------------------- CARD_ITEMS ------------------------------- */
                     works.map((work) => (
                         <div key={work.id} className={style.card} style={{
                             color:WORK_STATUS_COLORS[work.status].color,
@@ -100,6 +101,14 @@ const WorkPage = () => {
                             <span>{`Бригадир: ${work.team?.leader?.fullName||'Не назначен'}`}</span>
                             <div className={style.cardFooter}>
                                 <div className={style.cardFooterIconList}>
+                                    <button title="Привязать бригаду" onClick={() => {
+                                        setEditingWork(work),
+                                            setModalOpen(true)
+                                    }}><FiLink size={32} color="#435290ff" /></button>
+                                    <button title="Назначить бригаду" onClick={() => {
+                                        setEditingWork(work),
+                                            setModalOpen(true)
+                                    }}><FiLink2 size={32} color="#435290ff" /></button>
                                     <button title="Редактировать" onClick={() => {
                                         setEditingWork(work),
                                             setModalOpen(true)

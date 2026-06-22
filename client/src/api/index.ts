@@ -1,4 +1,4 @@
-import { type PositionType, type ApiResponse, type BaseType, type EmployeeType, type TeamType, type WorkType, type WorkListType } from "../type";
+import type{  PositionType,  ApiResponse,  BaseType,  EmployeeType,  TeamType,  WorkType,  WorkListType, TeamMemberType } from "../type";
 
 const API_URL = 'http://localhost:3000/api';
 
@@ -55,6 +55,10 @@ export const api = {
     getTeam: (id: string) => api.request<TeamType>(`/team/${id}`),
     updateTeam: (id: string, data: any) => api.request<TeamType>(`/team/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteTeam: (id: string) => api.request<TeamType>(`/team/${id}/hard`, { method: 'DELETE' }),
+    addTeamMember:(teamId:string,employeeId:string) => api.request<TeamMemberType>(`/team/${teamId}/members`,{method:'POST',body:JSON.stringify({employeeId})}),
+
+    assignTeam:(id:string,data:any)=>api.request<TeamType>(`/team/${id}/assign`,{method:'PATCH',body:JSON.stringify(data)}),
+    unAssignTeam:(id:string,data:any)=>api.request<TeamType>(`/team/${id}/unassign`,{method:'PATCH',body:JSON.stringify(data)}),
     
     //Work
     createWork: (data: any) => api.request<WorkType>('/works', { method: 'POST', body: JSON.stringify(data) }),
@@ -63,7 +67,6 @@ export const api = {
     getWork: (id: string) => api.request<WorkType>(`/works/${id}`),
     updateWork: (id: string, data: any) => api.request<WorkType>(`/works/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
     deleteWork: (id: string) => api.request<WorkType>(`/works/${id}/hard`, { method: 'DELETE' }),
-    
     //Base
     getBases: () => api.request<BaseType[]>('/bases'),
     //Position

@@ -6,13 +6,17 @@ import Toast, { TOAST_MSG } from "../../components/Toast/Toast"
 import { ENTITY, MSG, TEAM_STATUS_COLOR } from "../../constants"
 import style from './TeamPage.module.css'
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal"
-import { FiEdit, FiTrash2 } from 'react-icons/fi'
+import { FiEdit, FiTrash2, FiUserPlus, FiUserX, FiXCircle } from 'react-icons/fi'
+
 import TeamForm from "../../components/TeamForm/TeamForm"
+import EmployeesListForm from "../../components/EmployeesListForm/EmployeesListForm"
 
 const TeamPage = () => {
     const [teams, setTeam] = useState<TeamType[]>([])
+    const [teamId,setTeamId] =useState<string>('')
     const [employees, setEmployees] = useState<EmployeeType[]>([])
-    const [modalOpen, setModalOpen] = useState<boolean>(false)
+    const [modalTeamOpen, setmodalTeamOpen] = useState<boolean>(false)
+    const [modalMemberOpen, setModalMemberOpen] = useState<boolean>(false)
 
     const [toastOpen, setToastOpen] = useState<boolean>(false)
     const [toastTypeMsg, setToastTypeMsg] = useState<string>('')
@@ -36,7 +40,6 @@ const TeamPage = () => {
     const fetchTeam = async () => {
         const response = await api.getTeams();
         const employees = await api.getEmployees()
-        console.log(employees)
         setEmployees(employees.data || [])
         setTeam(response.data || []);
     };
@@ -50,21 +53,26 @@ const TeamPage = () => {
 
     return (
         <div className={style.wrapper}>
-            <Modal isOpen={modalOpen} onclose={() => {
-                setModalOpen(false)
+            <Modal isOpen={modalTeamOpen} onclose={() => {
+                setmodalTeamOpen(false)
                 setEditingTeam(null)
             }}>
                 <TeamForm initData={editingTeam} onSuccess={() => {
                     showToast(TOAST_MSG.INFORMATION,
                         editingTeam ?
                             MSG.ENTITY_WAS_UPDATED(ENTITY.TEAM, editingTeam.name) :
-                            MSG.ENTITY_WAS_CREATED(ENTITY.TEAM, selectedTeam?.name))
-                    setModalOpen(false)
+                            MSG.ENTITY_WAS_CREATED(ENTITY.TEAM, selectedTeam?.name||''))
+                    setmodalTeamOpen(false)
                     setEditingTeam(null)
                     fetchTeam()
                 }
                 }>
                 </TeamForm>
+            </Modal>
+            <Modal isOpen={modalMemberOpen} onclose={()=>{
+                setModalMemberOpen(false)
+            }}>
+                <EmployeesListForm onSuccess={()=>setModalMemberOpen(false)} teamId={teamId}></EmployeesListForm>
             </Modal>
             <Toast
                 isOpen={toastOpen}
@@ -91,27 +99,44 @@ const TeamPage = () => {
                 }} >
             </ConfirmModal>
 
-            <button type="button" className={style.fab} onClick={() => setModalOpen(true)}>+</button>
+            <button type="button" className={style.fab} onClick={() => setmodalTeamOpen(true)}>+</button>
             <div className={style.gridCards}>
                 {
                     teams.map((team) => (
+                        /* ------------------------------- CARD_ITEMS ------------------------------- */
                         <div key={team.id} className={style.card}
                             style={{
                                 color: TEAM_STATUS_COLOR[team.status].color,
                                 background: TEAM_STATUS_COLOR[team.status].bg
                             }} >
                             <h3>{team.name}</h3>
-                            <span>{`Бригадир: ${employees.find((employee)=>employee.id===team.leaderId).fullName||'Не назначен'}`}</span>
+                            <span>{`Бригадир: ${employees.find((employee) => employee.id === team.leaderId)?.fullName || 'Не назначен'}`}</span>
                             <div className={style.cardFooter}>
                                 <div className={style.cardFooterIconList}>
+                                    <button title="Отчистить бригаду" onClick={() => {
+       
+                                    }}>
+                                        <FiXCircle className={style.cardIcons} size={32} />
+                                    </button>
+                                    <button title="Удалить сотрудников" onClick={() => {
+
+                                    }}>
+                                        <FiUserX className={style.cardIcons} size={32} />
+                                    </button>
+                                    <button title="Добавить сотрудников" onClick={() => {
+                                            setTeamId(team.id)
+                                            setModalMemberOpen(true)
+                                    }}>
+                                        <FiUserPlus size={32} className={style.cardIcons} />
+                                    </button>
                                     <button title="Редактировать" onClick={() => {
                                         setEditingTeam(team),
-                                            setModalOpen(true)
-                                    }}><FiEdit size={32} /></button>
+                                            setmodalTeamOpen(true)
+                                    }}><FiEdit size={32} className={style.cardIcons} /></button>
                                     <button title="Удалить" onClick={() => {
                                         setSelectedTeam(team)
                                         setConfirmOpen(true)
-                                    }}><FiTrash2 size={32} /></button>
+                                    }}><FiTrash2 size={32} className={style.cardIcons} /></button>
                                 </div>
                             </div>
                         </div>

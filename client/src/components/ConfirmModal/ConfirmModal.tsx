@@ -1,4 +1,4 @@
-import './ConfirmModal.css'
+import style from './ConfirmModal.module.css';
 
 interface ConfirmModalProps {
     isOpen: boolean;
@@ -11,23 +11,23 @@ interface ConfirmModalProps {
 const ConfirmModal = ({ isOpen, message, onClose, onConfirm, title }: ConfirmModalProps) => {
     if (!isOpen) return null;
     return (
-        <div className='overlay'>
-            <div className='confirm-modal '>
-                <h3 className='title'>{title}</h3>
-                <p className='message'>{message}</p>
-                <div className='footer-buttons'>
-                    <button className='btn_ok' onClick={() => {
-                        onConfirm(true)
-                        onClose()
+        <div className={style.overlay}>
+            <div className={style.confirmModal}>
+                <h3 className={style.title}>{title}</h3>
+                <p className={style.message}>{message}</p>
+                <div className={style.footerButtons}>
+                    <button className={style.btnOk} onClick={() => {
+                        onConfirm(true);
+                        onClose();
                     }}>Ок</button>
-                    <button className='btn_cancel' onClick={() => {
-                        onConfirm(false)
-                        onClose()
-                    }}>Отемена</button>
+                    <button className={style.btnCancel} onClick={() => {
+                        onConfirm(false);
+                        onClose();
+                    }}>Отмена</button>
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default ConfirmModal
+export default ConfirmModal;
