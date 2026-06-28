@@ -7,7 +7,6 @@ export const ROLES = {
 } as const
 
 
-
 export const ASSIGNMENT_ROLES = {
     WORKER: 'worker',
     SUPERVISOR: 'supervisor',
@@ -44,7 +43,7 @@ export const TEAM_STATUS = {
     MAINTENANCE: "maintenance"
 } as const
 
-export const TEAM_STATUS_COLOR:Record<string, { bg: string; color: string }> = {
+export const TEAM_STATUS_COLOR: Record<string, { bg: string; color: string }> = {
     forming: { bg: '#f1f5f9', color: '#333' },
     active: { bg: 'var(--color-success)', color: '#fff' },
     idle: { bg: '#3498db', color: '#fff' },
@@ -57,6 +56,7 @@ export const ENTITY = {
     EMPLOYEE: 'Сотрудник',
     POSITION: 'Должность',
     TEAM: 'Бригада',
+    TEAMMEMBERS: 'Участник бригады',
     WORK: 'Работа',
     WORK_ASSIGNMENT: 'Назначение на работу'
 } as const
@@ -68,10 +68,11 @@ export const MSG = {
     ENTITY_WAS_CREATED: (entity: string, id: string | number = '') => { return `${entity} с id:${id} был создан.` },
     ENTITY_WAS_READ: (entity: string) => { return `Данные по ${entity} получены успешно.` },
     ENTITY_WAS_UPDATED: (entity: string, id: string | number) => { return `${entity} с id:${id} была обновлена.` },
-    ENTITY_WAS_HARD_DELETED: (entity: string, id: string) => { return `${entity} с  id:${id} был(а) удален(а).` },
+    ENTITY_WAS_HARD_DELETED: (entity: string, data: string) => { return `${entity} ${data} был(а) удален(а).` },
     ENTITY_WAS_SOFT_DELETE: (entity: string, id: string) => { return `${entity} с  id:${id} был(а) отмечен(а) на удаление.` },
     ENTITY_WAS_RESTORE: (entity: string, id: string) => { return `${entity} с  id:${id} был(а) востановлен(а).` },
     ENTITY_ALREADY_HAVE: (entity: string, id: string) => { return `${entity} с таким  id:${id} уже существует.` },
+    ENTITY_HAS_DEPENDENCIES: (entity: string, id: string) => `${entity} с id:${id} имеет зависимости и не может быть удален.`,
     ACCESS_DENIED: (entity: string) => { return `${entity}(у) доступ запрещён.` },
     TBL_IS_EMPTY: (entity: string) => { return `Таблица ${entity} пуста.` },
     // DRAFT:(entity:string,id:string)=>{`${entity} ${id}`},
@@ -87,14 +88,14 @@ export const MSG = {
     /* ----------------------------- WORK_ASSIGNMENT ---------------------------- */
     WORK_ASSIGNMENT_ALREADY_EXISTS: "Дублирующая запись.",
     WORK_ASSIGNMENT_EMPLOYEES_ENOUGHT: "Бригада укомплектована.",
-    WORK_TYPES_IS_LOADING:'Типы работ загружены успешно',
-    WORK_TYPES_NO_DATA:'Отсутствуют данные по типам работ в БД.',
+    WORK_TYPES_IS_LOADING: 'Типы работ загружены успешно',
+    WORK_TYPES_NO_DATA: 'Отсутствуют данные по типам работ в БД.',
     /* ------------------------------- VALIDATION ------------------------------- */
     SERVER_ERROR: "Ошибка сервера",
 
     WRONG_EMP_ID_OR_PASSWORD: 'Неверный EmployeeID или пароль',
 
-    STR_MAIL_WRONG_FORMAT: 'Неверный формат EmployeeID (E + 6 цифр).',
+    STR_EXXXXXX_WRONG_FORMAT: (employeeId: string) => `Неверный формат EmployeeID (E + 6 цифр). => ${employeeId}`,
     STR_PASSWORD_WRONG_FORMAT: 'Пароль минимум 6 символов.',
     STR_MAIL_ALREADY_HAVE: 'Email уже используется',
     /* ------------------------------ REQUIRE DATA ------------------------------ */

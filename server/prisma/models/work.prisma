@@ -1,7 +1,7 @@
 model Work {
   id           String           @id @default(uuid())
   name         String?           @unique
-  status       String           @default("drift")
+  status       String           @default("draft")
   wellId       String // скважина, пока строкой
   /* -----------------------------Links--------------------------------------------- */
   workTypeId   Int 
@@ -20,13 +20,14 @@ model WorkAssignment {
   work        Work      @relation(fields: [workId], references: [id])
   employeeId  String
   employee    Employee  @relation(fields: [employeeId], references: [id])
-  role        String    @default("worker")
+  workRole     String    @default("worker")
   startDate   DateTime  @default(now())
   endDate     DateTime?
     /* Default fields---------------------------------------------- */
   isDeleted    Boolean @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt @default(now())
+  @@unique([workId, employeeId])
 }
 
 model WorkType{

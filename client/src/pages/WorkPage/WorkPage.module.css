@@ -46,20 +46,11 @@
         font-size: 18px;
         transition: color 0.2s;
 
-        &:nth-child(1) {
+        &:nth-child {
             color: var(--color-text-secondary);
         }
 
-        /* редактировать */
-        &:nth-child(2) {
-            color: #e74c3c;
-        }
 
-        /* удалить */
-
-        &:hover {
-            opacity: 0.8;
-        }
     }
 }
 

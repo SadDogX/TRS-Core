@@ -1,95 +1,15 @@
 import { Router, Request, Response } from "express";
+import * as teamController from '../controller/team.controller'
 import prisma from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/requireRole";
 import { ROLES, TEAM_STATUS, MSG, WORK_STATUSES, ENTITY, ROLESNAME } from "../constants";
+import { handleServerError } from "../utills/http/error";
 
 const router = Router()
 /* --------------------------------- Create --------------------------------- */
-router.post('/', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
-    try {
-        const { leaderId, name, status } = req.body
-        if (!leaderId) {
-            return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE, leaderId) })
-        }
-
-        const leader = await prisma.employee.findUnique({
-            where: {
-                id: leaderId
-            }
-        })
-
-        if (!leader) {
-            return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE, leaderId) })
-        }
-
-        if (leader.isBlocked) {
-            return res.status(400).json({ error: MSG.EMP_IS_BLOCKED })
-        }
-
-        const team = await prisma.team.create({
-            data: {
-                name: name?.trim() || null,
-                leaderId: leaderId,
-                createdById: req.user.id,
-                status: status || TEAM_STATUS.FORMING
-            }
-        })
-        res.status(201).json({ message: MSG.ENTITY_WAS_CREATED(ENTITY.TEAM, team.id), data: team })
-
-
-    } catch (error) {
-        console.error('POST /api/teams:', error);
-        res.status(500).json({ error: MSG.SERVER_ERROR })
-    }
-})
-router.post('/:teamId/members', authenticate, requireRole(ROLES.COORDINATOR, ROLES.ADMIN), async (req: Request, res: Response) => {
-    try {
-        const { employeeId } = req.body
-        const { teamId } = req.params
-        console.log(employeeId)
-        const employee = await prisma.employee.findUnique({ where: { id: employeeId } })
-        if (!employee) {
-            return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE, employeeId) })
-        }
-        if (employee.isBlocked) {
-            return res.status(400).json({ error: MSG.EMP_IS_BLOCKED })
-        }
-        const team = await prisma.team.findUnique({ where: { id: teamId } })
-        if (!team) {
-            return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.TEAM, teamId) })
-        }
-        if (team.isDeleted) {
-
-            return res.status(400).json({ error: MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.TEAM, teamId) })
-        }
-        if (req.user.role === ROLES.COORDINATOR && req.user.employeeId !== team.createdById) {
-            return res.status(400).json({ error: MSG.ACCESS_DENIED(ROLESNAME[ROLES.COORDINATOR]) })
-        }
-
-        const existing = await prisma.teamMember.findFirst({
-            where: {
-                employeeId: employeeId,
-                isDeleted: false,
-                removedAt: null,
-                teamId: teamId
-            }
-        })
-        if (existing) {
-            return res.status(400).json({ error: MSG.ENTITY_ALREADY_HAVE(ENTITY.EMPLOYEE, employeeId) })
-        }
-        const member = await prisma.teamMember.create({
-            data: {
-                employeeId: employeeId,
-                teamId: teamId
-            }
-        })
-        res.status(200).json({ message: MSG.ENTITY_WAS_CREATED(ENTITY.TEAM, teamId), data: member })
-    } catch (error) {
-        console.error('POST /api/teams/:teamId/members:', error);
-        res.status(500).json({ error: MSG.SERVER_ERROR })
-    }
-})
+router.post('/', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), teamController.createTeam)
+router.post('/:teamId/members', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), teamController.createLinkMembers)
 /* ---------------------------------- Read ---------------------------------- */
 router.get('/', authenticate, async (req: Request, res: Response) => {
     try {
@@ -97,7 +17,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         if (user.role === ROLES.ADMIN) {
             const teams = await prisma.team.findMany()
             if (teams.length === 0) {
-                return res.json({ information: MSG.TBL_IS_EMPTY(ENTITY.TEAM) })
+                return res.json({ information: MSG.TBL_IS_EMPTY(ENTITY.TEAM), data: [] })
             }
             res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.TEAM), data: teams });
 
@@ -111,7 +31,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
                 }
             })
             if (teams.length === 0) {
-                return res.json({ information: MSG.TBL_IS_EMPTY(ENTITY.TEAM) })
+                return res.json({ information: MSG.TBL_IS_EMPTY(ENTITY.TEAM), data: [] })
             }
             res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.TEAM), data: teams });
 
@@ -125,9 +45,9 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
                 }
             })
             if (teams.length === 0) {
-                return res.json({ information: MSG.TBL_IS_EMPTY(ENTITY.TEAM) })
+                return res.json({ information: MSG.TBL_IS_EMPTY(ENTITY.TEAM), data: [] })
             }
-            res.json(teams)
+            res.json({ message: MSG.ENTITY_WAS_READ(ENTITY.TEAM), data: teams });
         }
 
         if (user.role === ROLES.WORKER) {
@@ -142,7 +62,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
                 }
             })
             if (teams.length === 0) {
-                return res.json({ information: MSG.TBL_IS_EMPTY(ENTITY.TEAM) })
+                return res.json({ information: MSG.TBL_IS_EMPTY(ENTITY.TEAM), data: [] })
             }
             res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.TEAM), data: teams });
 
@@ -152,7 +72,27 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
+router.get('/members', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
+    try {
+        const where: any = { isDeleted: false }
+        if (req.user.role === ROLES.COORDINATOR)
+            where.team = { createdById: req.user.employeeId }
+        const teamMember = await prisma.teamMember.findMany(
+            {
+                where
+            });
+        if (teamMember.length === 0) {
+            return res.status(200).json({ error: MSG.TBL_IS_EMPTY(ENTITY.TEAMMEMBERS), data: null })
+        }
 
+        res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.TEAMMEMBERS), data: teamMember })
+
+
+    } catch (error) {
+        console.error('GET /api/members', error);
+        res.status(500).json({ error: MSG.SERVER_ERROR })
+    }
+})
 router.get('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
     try {
         const where: any = { id: req.params.id };
@@ -162,7 +102,7 @@ router.get('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
         }
         const team = await prisma.team.findFirst(where)
         if (!team) {
-            return res.json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.TEAM, req.params.id) })
+            return res.json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.TEAM, req.params.id), data: { id: req.params.id } })
         }
         res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.TEAM), data: team });
     } catch (error) {
@@ -170,7 +110,7 @@ router.get('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
-
+router.get('/:teamId/members', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), teamController.getTeamMemberIds)
 /* --------------------------------- Update --------------------------------- */
 router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
     try {
@@ -202,7 +142,7 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
         }
 
         if (req.user.role === ROLES.COORDINATOR && target.createdById !== req.user.employeeId) {
-            return res.json({ error: MSG.ACCESS_DENIED(ROLESNAME[ROLES.COORDINATOR]) })
+            return res.json({ error: MSG.ACCESS_DENIED(ROLESNAME[ROLES.COORDINATOR]), data: { id: req.params.id } })
         }
 
         const updat_target = await prisma.team.update({
@@ -210,7 +150,7 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
             data: { leaderId, status }
         })
 
-        res.json({ message: MSG.ENTITY_WAS_UPDATED(ENTITY.TEAM, updat_target.id) })
+        res.json({ message: MSG.ENTITY_WAS_UPDATED(ENTITY.TEAM, updat_target.id), data: updat_target })
     } catch (error) {
         console.error('PUT /api/teams/:id:', error);
         res.status(500).json({ error: MSG.SERVER_ERROR })
@@ -286,6 +226,9 @@ router.patch("/:id/restore", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDI
         res.status(500).json({ error: MSG.SERVER_ERROR })
     }
 })
+
+
+router.patch('/:teamId/members', authenticate,teamController.updateTeamMemberByIds)
 
 /* ----------------------------- TEAM ASSIGmMENT ---------------------------- */
 router.patch('/:id/assign', authenticate, requireRole(ROLES.COORDINATOR), async (req: Request, res: Response) => {

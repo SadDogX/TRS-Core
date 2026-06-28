@@ -24,11 +24,11 @@ export const api = {
             this.clearToken();
             window.location.href = '/login';
         }
-        const data = await res.json()
+        const response = await res.json()
         if (!res.ok) {
-            throw new Error(data.error || 'Ошибка сервера')
+            throw response
         }
-        return data;
+        return response;
     },
 
     // Auth
@@ -57,6 +57,8 @@ export const api = {
     deleteTeam: (id: string) => api.request<TeamType>(`/team/${id}/hard`, { method: 'DELETE' }),
     addTeamMember:(teamId:string,employeeId:string) => api.request<TeamMemberType>(`/team/${teamId}/members`,{method:'POST',body:JSON.stringify({employeeId})}),
 
+    updateMembersTeamById:(teamId:string,memberIds:string[])=>api.request(`/team/${teamId}/members`,{method:'PATCH',body:JSON.stringify(memberIds)}),
+    getMembersOfTeam:(teamId:string)=>api.request(`/team/${teamId}/members`),
     assignTeam:(id:string,data:any)=>api.request<TeamType>(`/team/${id}/assign`,{method:'PATCH',body:JSON.stringify(data)}),
     unAssignTeam:(id:string,data:any)=>api.request<TeamType>(`/team/${id}/unassign`,{method:'PATCH',body:JSON.stringify(data)}),
     

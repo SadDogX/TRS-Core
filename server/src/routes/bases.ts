@@ -87,10 +87,10 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
 /* --------------------------------- HARD DELETE --------------------------------- */
 router.delete('/:id/hard', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
   try {
-    await prisma.base.delete({
+    const base = await prisma.base.delete({
       where: { id: req.params.id },
     });
-    res.json({ message: MSG.ENTITY_WAS_HARD_DELETED(ENTITY.BASE,req.params.id) });
+    res.json({ message: MSG.ENTITY_WAS_HARD_DELETED(ENTITY.BASE,req.params.id), data: base });
   } catch (error: any) {
     if (error.code === 'P2025') {
       return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.BASE, req.params.id) })
@@ -106,7 +106,7 @@ router.delete('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR),
       where: { id: req.params.id },
       data: { isDeleted: true }
     })
-    res.json({ message: MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.BASE,req.params.id) })
+    res.json({ message: MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.BASE,req.params.id),data:base });
   } catch (error: any) {
     if (error.code == "P2025") {
       res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.BASE, req.params.id) })
@@ -122,7 +122,7 @@ router.patch('/:id/restore', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDI
       where: { id: req.params.id },
       data: { isDeleted: false }
     });
-    res.json({ message: MSG.ENTITY_WAS_RESTORE(ENTITY.BASE, req.params.id) });
+    res.json({ message: MSG.ENTITY_WAS_RESTORE(ENTITY.BASE, req.params.id), data: base });
   } catch (error: any) {
     if (error.code === 'P2025') {
       return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.BASE, req.params.id) });

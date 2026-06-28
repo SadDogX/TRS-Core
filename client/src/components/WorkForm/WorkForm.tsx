@@ -52,10 +52,10 @@ const WorkForm = ({ onSuccess, initData }: WorkFormProps) => {
                 onSuccess?.();
             }, 500)
 
-        } catch (error: any) {
+        } catch (data: any) {
             setToastOpen(true)
             setToastTypeMsg(TOAST_MSG.ERROR)
-            setToastMsg(error.message)
+            setToastMsg(data.error)
         }
     }
 

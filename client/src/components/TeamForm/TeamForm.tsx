@@ -11,6 +11,8 @@ interface TeamFormProps {
     initData?: TeamType
 }
 
+type TeamStatus = typeof TEAM_STATUS[keyof typeof TEAM_STATUS]
+
 const TeamForm = ({ onSuccess, initData }: TeamFormProps) => {
     const [teamData, setTeamData] = useState<Partial<TeamType>>({})
     const [owner, setOwner] = useState<EmployeeType>(null)
@@ -61,10 +63,10 @@ const TeamForm = ({ onSuccess, initData }: TeamFormProps) => {
                 onSuccess?.();
             }, 500)
 
-        } catch (error: any) {
+        } catch (data: any) {
             setToastOpen(true)
             setToastTypeMsg(TOAST_MSG.ERROR)
-            setToastMsg(error.message)
+            setToastMsg(data.error)
         }
     }
 
@@ -91,7 +93,7 @@ const TeamForm = ({ onSuccess, initData }: TeamFormProps) => {
                     </select>
 
                     <label htmlFor="status">Статус</label>
-                    <select id="status" value={teamData.status || ''} onChange={(e) => setTeamData({ ...teamData, status: e.target.value })}>
+                    <select id="status" value={teamData.status || ''} onChange={(e) => setTeamData({ ...teamData, status: e.target.value as TeamStatus})}>
                         <option value="" disabled>Выберите...</option>
                         {
                             Object.values(TEAM_STATUS).map(status =>

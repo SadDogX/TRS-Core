@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import type { EmployeeType, TeamType } from "../../type"
+import type { EmployeeType, MembersOfTeam, TeamType } from "../../type"
 import { api } from "../../api"
 import Modal from "../../components/Modal/Modal"
 import Toast, { TOAST_MSG } from "../../components/Toast/Toast"
@@ -11,12 +11,15 @@ import { FiEdit, FiTrash2, FiUserPlus, FiUserX, FiXCircle } from 'react-icons/fi
 import TeamForm from "../../components/TeamForm/TeamForm"
 import EmployeesListForm from "../../components/EmployeesListForm/EmployeesListForm"
 
+
+
 const TeamPage = () => {
     const [teams, setTeam] = useState<TeamType[]>([])
-    const [teamId,setTeamId] =useState<string>('')
+    const [teamId, setTeamId] = useState<string>('')
     const [employees, setEmployees] = useState<EmployeeType[]>([])
     const [modalTeamOpen, setmodalTeamOpen] = useState<boolean>(false)
     const [modalMemberOpen, setModalMemberOpen] = useState<boolean>(false)
+    const [membersOfTeam, setMembersOfTeam] = useState<MembersOfTeam[]>([])
 
     const [toastOpen, setToastOpen] = useState<boolean>(false)
     const [toastTypeMsg, setToastTypeMsg] = useState<string>('')
@@ -39,6 +42,14 @@ const TeamPage = () => {
 
     const fetchTeam = async () => {
         const response = await api.getTeams();
+        const result: MembersOfTeam[] = await Promise.all(
+            response.data.map(async (team) => {
+                const members = await api.getMembersOfTeam(team.id)
+                return { teamId: team.id, memberIds: members.data as string[] }
+            })
+        )
+
+        setMembersOfTeam(result)
         const employees = await api.getEmployees()
         setEmployees(employees.data || [])
         setTeam(response.data || []);
@@ -57,22 +68,27 @@ const TeamPage = () => {
                 setmodalTeamOpen(false)
                 setEditingTeam(null)
             }}>
-                <TeamForm initData={editingTeam} onSuccess={() => {
+                <TeamForm initData={editingTeam} onSuccess={async () => {
+
                     showToast(TOAST_MSG.INFORMATION,
                         editingTeam ?
                             MSG.ENTITY_WAS_UPDATED(ENTITY.TEAM, editingTeam.name) :
-                            MSG.ENTITY_WAS_CREATED(ENTITY.TEAM, selectedTeam?.name||''))
-                    setmodalTeamOpen(false)
+                            MSG.ENTITY_WAS_CREATED(ENTITY.TEAM, selectedTeam?.name || ''))
                     setEditingTeam(null)
-                    fetchTeam()
+                    setmodalTeamOpen(false)
+                    await fetchTeam()
                 }
                 }>
                 </TeamForm>
             </Modal>
-            <Modal isOpen={modalMemberOpen} onclose={()=>{
+            <Modal isOpen={modalMemberOpen} onclose={() => {
                 setModalMemberOpen(false)
             }}>
-                <EmployeesListForm onSuccess={()=>setModalMemberOpen(false)} teamId={teamId}></EmployeesListForm>
+                <EmployeesListForm initData={membersOfTeam} onSuccess={() => {
+                    setModalMemberOpen(false)
+                    fetchTeam()
+                }} teamId={teamId}>
+                </EmployeesListForm>
             </Modal>
             <Toast
                 isOpen={toastOpen}
@@ -92,8 +108,8 @@ const TeamPage = () => {
                             await deleteTeam(selectedTeam.id)
                             fetchTeam()
                             showToast(TOAST_MSG.INFORMATION, MSG.ENTITY_WAS_HARD_DELETED(ENTITY.TEAM, selectedTeam.id))
-                        } catch (error: any) {
-                            showToast(TOAST_MSG.ERROR, error.message)
+                        } catch (data: any) {
+                            showToast(TOAST_MSG.ERROR, data.error)
                         }
                     }
                 }} >
@@ -114,7 +130,7 @@ const TeamPage = () => {
                             <div className={style.cardFooter}>
                                 <div className={style.cardFooterIconList}>
                                     <button title="Отчистить бригаду" onClick={() => {
-       
+
                                     }}>
                                         <FiXCircle className={style.cardIcons} size={32} />
                                     </button>
@@ -124,8 +140,8 @@ const TeamPage = () => {
                                         <FiUserX className={style.cardIcons} size={32} />
                                     </button>
                                     <button title="Добавить сотрудников" onClick={() => {
-                                            setTeamId(team.id)
-                                            setModalMemberOpen(true)
+                                        setTeamId(team.id)
+                                        setModalMemberOpen(true)
                                     }}>
                                         <FiUserPlus size={32} className={style.cardIcons} />
                                     </button>

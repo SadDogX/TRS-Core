@@ -81,8 +81,8 @@ const WorkPage = () => {
                             await deleteWork(selectedWork.id)
                             fetchWork()
                             showToast(TOAST_MSG.INFORMATION, MSG.ENTITY_WAS_HARD_DELETED(ENTITY.TEAM, selectedWork.id))
-                        } catch (error: any) {
-                            showToast(TOAST_MSG.ERROR, error.message)
+                        } catch (data: any) {
+                            showToast(TOAST_MSG.ERROR, data.error)
                         }
                     }
                 }} >
@@ -104,11 +104,11 @@ const WorkPage = () => {
                                     <button title="Привязать бригаду" onClick={() => {
                                         setEditingWork(work),
                                             setModalOpen(true)
-                                    }}><FiLink size={32} color="#435290ff" /></button>
+                                    }}><FiLink size={32}  /></button>
                                     <button title="Назначить бригаду" onClick={() => {
                                         setEditingWork(work),
                                             setModalOpen(true)
-                                    }}><FiLink2 size={32} color="#435290ff" /></button>
+                                    }}><FiLink2 size={32} /></button>
                                     <button title="Редактировать" onClick={() => {
                                         setEditingWork(work),
                                             setModalOpen(true)

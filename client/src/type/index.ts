@@ -1,13 +1,18 @@
-import { ASSIGNMENT_ROLES, ROLES, WORK_STATUSES } from "../constants"
+import { ASSIGNMENT_ROLES, ROLES, TEAM_STATUS, WORK_STATUSES } from "../constants"
 
 export type ApiResponse<T> = {
     message?: string,
     data?: T,
     error?: string;
 }
+
+export type MembersOfTeam={
+    teamId:string
+    memberIds:string[]
+}
 export type EmployeeType = {
     id: string,
-    employee_Id: string,
+    employeeId: string,
     fullName: string,
     email: string,
     phone: string,
@@ -45,7 +50,7 @@ export type BaseType = {
 export type TeamType = {
     id: string,
     name?:string,
-    status: string,
+    status: typeof TEAM_STATUS[keyof typeof TEAM_STATUS],
     createdById: string,
     leader:EmployeeType,
     leaderId: string,

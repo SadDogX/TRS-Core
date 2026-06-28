@@ -4,6 +4,7 @@ import prisma from '../lib/prisma';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { ENTITY, MSG, ROLES, ROLESNAME } from '../constants';
+import { getEmpployeeDependencies } from '../services/employee.service';
 
 const router = Router();
 
@@ -11,9 +12,9 @@ const router = Router();
 router.post('/', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
   try {
     const { employeeId, fullName, positionId, email, phone, password, role, baseId } = req.body;
-
+    console.log(employeeId)
     if (!employeeId || !/^E\d{6}$/.test(employeeId)) {
-      return res.status(400).json({ error: MSG.STR_MAIL_WRONG_FORMAT });
+      return res.status(400).json({ error: MSG.STR_EXXXXXX_WRONG_FORMAT(employeeId) });
     }
 
     if (!password || password.length < 6) {
@@ -128,7 +129,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
 router.put('/:id', authenticate, async (req: Request, res: Response) => {
   try {
     const target = await prisma.employee.findUnique({
-      where: { employeeId: req.params.id },
+      where: { id: req.params.id },
     });
 
     if (!target) {
@@ -136,7 +137,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
     }
 
     if (req.user.role === ROLES.ADMIN) {
-      const { password, employeeId, ...rest } = req.body;
+      const { password, id, ...rest } = req.body;
       const data: any = { ...rest };
 
       if (password) {
@@ -146,12 +147,12 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
         data.passwordHash = await bcrypt.hash(password, 10);
       }
       const updated = await prisma.employee.update({
-        where: { employeeId: req.params.id },
+        where: { id: req.params.id },
         data,
       });
 
       const { passwordHash, ...result } = updated;
-      return res.json(result);
+      return res.json({ message: MSG.ENTITY_WAS_UPDATED(ENTITY.EMPLOYEE, result.id), data: result });
     }
 
     // Координатор может менять только isBlocked
@@ -179,7 +180,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
         });
 
         const { passwordHash, ...result } = updated;
-        return res.json(result);
+        return res.json({ message: MSG.ENTITY_WAS_UPDATED(ENTITY.EMPLOYEE, result.id), data: result });
       }
 
       return res.status(403).json({ error: MSG.ACCESS_DENIED(ROLESNAME[ROLES.WORKER]) });
@@ -196,7 +197,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
 router.patch('/:id/toggle-block', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
   try {
     const target = await prisma.employee.findUnique({
-      where: { employeeId: req.params.id },
+      where: { id: req.params.id },
     });
 
     if (!target) {
@@ -204,11 +205,11 @@ router.patch('/:id/toggle-block', authenticate, requireRole(ROLES.ADMIN, ROLES.C
     }
 
     const updated = await prisma.employee.update({
-      where: { employeeId: req.params.id },
+      where: { id: req.params.id },
       data: { isBlocked: !target.isBlocked },
     });
 
-    res.json({ employeeId: updated.employeeId, isBlocked: updated.isBlocked });
+    res.json({  message: MSG.ENTITY_WAS_UPDATED(ENTITY.EMPLOYEE, updated.employeeId), data: { isBlocked: updated.isBlocked }, });
   } catch (error) {
     console.error('PATCH /api/employees/:id/toggle-block:', error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
@@ -235,10 +236,14 @@ router.delete('/:id/soft', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINA
 /* ------------------------------- HARD DELETE ------------------------------ */
 router.delete('/:id/hard', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
   try {
+    const dependencies=await getEmpployeeDependencies(prisma, req.params.id)
+    if (dependencies.hasDependencies) {
+      return res.status(400).json({ error: MSG.ENTITY_HAS_DEPENDENCIES(ENTITY.EMPLOYEE, req.params.id),data:dependencies });
+    }
     await prisma.employee.delete({
-      where: { employeeId: req.params.id }
+      where: { id: req.params.id }
     });
-    res.json({ message: MSG.ENTITY_WAS_HARD_DELETED(ENTITY.EMPLOYEE, req.params.id) });
+    res.json({ message: MSG.ENTITY_WAS_HARD_DELETED(ENTITY.EMPLOYEE, req.params.id), data: null });
   } catch (error: any) {
     if (error.code === 'P2025') {
       return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE, req.params.id) });
@@ -256,7 +261,7 @@ router.patch('/:id/restore', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDI
       data: { isDeleted: false }
     });
     const { passwordHash, ...result } = updated;
-    res.json({ message: MSG.ENTITY_WAS_RESTORE(ENTITY.EMPLOYEE, updated.fullName) });
+    res.json({ message: MSG.ENTITY_WAS_RESTORE(ENTITY.EMPLOYEE, updated.fullName), data: result });
   } catch (error: any) {
     if (error.code === 'P2025') {
       return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE, req.params.id) });

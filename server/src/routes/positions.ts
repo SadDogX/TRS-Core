@@ -28,7 +28,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     try {
         const positions = await prisma.position.findMany();
         if (positions.length == 0) {
-            return res.json({ message: MSG.TBL_IS_EMPTY })
+            return res.json({ message: MSG.TBL_IS_EMPTY , data: [] })
         }
         res.status(200).json({ message: MSG.ENTITY_WAS_READ(ENTITY.POSITION), data: positions });
 
@@ -76,7 +76,7 @@ router.delete('/:id/hard', authenticate, requireRole(ROLES.ADMIN), async (req: R
         await prisma.position.delete({
             where: { id: parseInt(req.params.id) },
         });
-        res.json({ message: MSG.ENTITY_WAS_HARD_DELETED(ENTITY.POSITION, req.params.id) });
+        res.json({ message: MSG.ENTITY_WAS_HARD_DELETED(ENTITY.POSITION, req.params.id) ,data: { id: parseInt(req.params.id) } });
     } catch (error: any) {
         if (error.code === 'P2025') {
             return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.POSITION, req.params.id) });
@@ -90,7 +90,7 @@ router.delete('/:id/soft', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINA
     try {
         const id = parseInt(req.params.id)
         if (isNaN(id)) {
-            return res.json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.POSITION, req.params.id) })
+            return res.json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.POSITION, req.params.id) ,data:{id:req.params.id} })
         }
         const position = await prisma.position.findFirst(
             {
@@ -100,7 +100,7 @@ router.delete('/:id/soft', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINA
             }
         )
         if (!position) {
-            return res.json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.POSITION, req.params.id) })
+            return res.json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.POSITION, req.params.id), data: { id: req.params.id } })
         }
         await prisma.position.update(
             {
@@ -110,7 +110,7 @@ router.delete('/:id/soft', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINA
                 }
             }
         )
-        res.json({ message: MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.POSITION, req.params.id) });
+        res.json({ message: MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.POSITION, req.params.id), data: position });
     } catch (error: any) {
         if (error.code === 'P2025') {
             return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.POSITION, req.params.id) });
@@ -137,7 +137,7 @@ router.patch('/:id/restore', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDI
             data: { isDeleted: false }
         });
 
-        res.json({ message: MSG.ENTITY_WAS_RESTORE(ENTITY.POSITION, req.params.id) });
+        res.json({ message: MSG.ENTITY_WAS_RESTORE(ENTITY.POSITION, req.params.id), data: position });
     } catch (error: any) {
         if (error.code === 'P2025') {
             return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.POSITION, req.params.id) });

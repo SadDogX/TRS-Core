@@ -42,14 +42,14 @@ const EmployeeForm = ({ onSuccess, initData }: EmployeeFormProps) => {
     const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
         e.preventDefault()
         let response;
-        const { id, createdAt, updatedAt, position, base, isDeleted, isBlocked, ...cleanData } = employeeData;
+        const {  createdAt, updatedAt, position, base, isDeleted, isBlocked, ...cleanData } = employeeData;
         const data: any = { ...cleanData };
         try {
             if (initData) {
                 if (password && password !== 'user123') {
                     data.password = password
                 }
-                response = await api.updateEmployee(initData.employee_Id, data)
+                response = await api.updateEmployee(initData.id, data)
             } else {
                 data.password = password
                 response = await api.createEmployee(data)
@@ -61,10 +61,10 @@ const EmployeeForm = ({ onSuccess, initData }: EmployeeFormProps) => {
                 onSuccess?.();
             }, 500)
 
-        } catch (error: any) {
+        } catch (data: any) {
             setToastOpen(true)
             setToastTypeMsg(TOAST_MSG.ERROR)
-            setToastMsg(error.message)
+            setToastMsg(data.error)
         }
     }
 
@@ -76,10 +76,10 @@ const EmployeeForm = ({ onSuccess, initData }: EmployeeFormProps) => {
                 <form onSubmit={handleSubmit}>
                     <label htmlFor="fullname">ФИО</label>
                     <input type="text" id="fullname" value={employeeData.fullName || ''} onChange={(e) => setEmployeeData({ ...employeeData, fullName: e.target.value })} />
-                    
+
                     <label htmlFor="password">Пароль</label>
                     <input type="text" id="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                    
+
                     <label htmlFor="positionId">Должность</label>
                     <select id="positionId" value={employeeData.positionId || ''} onChange={(e) => setEmployeeData({ ...employeeData, positionId: Number(e.target.value) })}>
                         <option value="" disabled>Выберите...</option>
@@ -87,16 +87,16 @@ const EmployeeForm = ({ onSuccess, initData }: EmployeeFormProps) => {
                             <option key={pos.id} value={pos.id}>{pos.name}</option>
                         ))}
                     </select>
-                    
+
                     <label htmlFor="employeeId">EXXXXXX</label>
-                    <input type="text" id="employeeId" disabled={!!initData} value={employeeData.employee_Id || ''} onChange={(e) => setEmployeeData({ ...employeeData, employee_Id: e.target.value })} />
-                    
+                    <input type="text" id="employeeId" disabled={!!initData} value={employeeData.employeeId || ''} onChange={(e) => setEmployeeData({ ...employeeData, employeeId: e.target.value })} />
+
                     <label htmlFor="email">Почта</label>
                     <input type="text" id="email" value={employeeData.email || ''} onChange={(e) => setEmployeeData({ ...employeeData, email: e.target.value })} />
-                    
+
                     <label htmlFor="phone">Телефон</label>
                     <input type="text" id="phone" value={employeeData.phone || ''} onChange={(e) => setEmployeeData({ ...employeeData, phone: e.target.value })} />
-                    
+
                     <label htmlFor="baseId">База</label>
                     <select id="baseId" value={employeeData.baseId || ''} onChange={(e) => setEmployeeData({ ...employeeData, baseId: e.target.value })}>
                         <option value="" disabled>Выберите...</option>
@@ -104,14 +104,14 @@ const EmployeeForm = ({ onSuccess, initData }: EmployeeFormProps) => {
                             <option key={base.id} value={base.id}>{base.name}</option>
                         ))}
                     </select>
-                    
+
                     <label htmlFor="role">Роль</label>
                     <select id="role" value={employeeData.role || ''} onChange={(e) => setEmployeeData({ ...employeeData, role: e.target.value as typeof ROLES[keyof typeof ROLES] })}>
                         {Object.values(ROLES).map(role => (
                             <option key={role} value={role}>{role}</option>
                         ))}
                     </select>
-                    
+
                     <button type="submit">{initData ? 'Обновить' : 'Создать'}</button>
                 </form>
             </div>

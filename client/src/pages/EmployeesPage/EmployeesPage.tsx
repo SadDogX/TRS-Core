@@ -69,7 +69,7 @@ const EmployeesPage = () => {
                 onClose={() => setToastOpen(false)}
                 message={toastMsg}
                 messageTitle={toastTypeMsg}
-                autoCloseTime={4000}>
+                autoCloseTime={5000}>
             </Toast>
             <ConfirmModal
                 isOpen={confirmOpen}
@@ -79,12 +79,18 @@ const EmployeesPage = () => {
                 onConfirm={async (confirm) => {
                     if (confirm) {
                         try {
-                            await deleteEmployee(selectedEmployee.employee_Id)
+                            await deleteEmployee(selectedEmployee.id)
                             fetchEmployees()
                             showToast(TOAST_MSG.INFORMATION, MSG.ENTITY_WAS_HARD_DELETED(ENTITY.EMPLOYEE, selectedEmployee.fullName))
-                        } catch (error: any) {
-                            console.log(selectedEmployee.employee_Id)
-                            showToast(TOAST_MSG.ERROR, error.message)
+                        } catch (data: any) {
+                            const dependencies = data.data
+                            const message= `Сотрудник ${selectedEmployee.fullName} не может быть удален, имеет следующие зависимости:\n
+                            В бригаде:${dependencies.teamMember}
+                            Бригадир:${dependencies.teamsAsLeader}
+                            Создатель бригады:${dependencies.teamsAsCreator}
+                            В работе:${dependencies.workAssignment}`
+                            console.log(message)
+                            showToast(TOAST_MSG.ERROR, message||data.error)
                         }
                     }
                 }} >
@@ -93,18 +99,18 @@ const EmployeesPage = () => {
             <button type="button" className={style.fab} onClick={() => setModalOpen(true)}>+</button>
             <div className={style.gridCardsEmployees}>
                 {employees.map((employee) => (
-                    <div className={style.cardEmployee} key={employee.id}>
-                        <h6>{employee.fullName}</h6>
+                    <div className={style.cardEmployee} key={employee.id} >
+                        <h3>{employee.fullName}</h3>
                         <span>{employee.position.name}</span>
                         <div className={style.cardFooter}>
                             <div className={style.cardFooterIconList}>
                                 <button title="Заблокировать" onClick={async () => {
                                     try {
-                                        await toggleLockEmployee(employee.employee_Id)
+                                        await toggleLockEmployee(employee.id)
                                         fetchEmployees()
                                         showToast(TOAST_MSG.INFORMATION, (employee.isBlocked ? 'Разблокирован' : 'Заблокирован') + ' сотрудник :' + employee.fullName)
-                                    } catch (error: any) {
-                                        showToast(TOAST_MSG.ERROR, error.message)
+                                    } catch (data: any) {
+                                        showToast(TOAST_MSG.ERROR, data.error)
                                     }
                                 }}>
                                     {employee.isBlocked ? <FiLock size={32}/> : <FiUnlock size={32} />}</button>
