@@ -36,13 +36,13 @@ router.get("/", authenticate, async (req: Request, res: Response) => {
         const where: any = {};
         switch (req.user.role) {
             case ROLES.COORDINATOR:
-                where.team = { is: { createdById: req.user.employeeId } }
+                where.team = { is: { createdById: req.user.id } }
                 break;
             case ROLES.LEADER:
-                where.team = {is:{leaderId:req.user.employeeId}}
+                where.team = {is:{leaderId:req.user.id}}
                 break;
             case ROLES.WORKER:
-                where.assignments = { some: { employeeId: req.user.employeeId } }
+                where.assignments = { some: { employeeId: req.user.id } }
                 break;
             case ROLES.ADMIN:
                 break;
@@ -81,13 +81,13 @@ router.get("/:id", authenticate, async (req: Request, res: Response) => {
         where.id = req.params.id
         switch (req.user.role) {
             case ROLES.COORDINATOR:
-                where.team = { is: { createdById: req.user.employeeId } }
+                where.team = { is: { createdById: req.user.id } }
                 break;
             case ROLES.LEADER:
-                where.team = {is:{leaderId:req.user.employeeId}}
+                where.team = {is:{leaderId:req.user.id}}
                 break;
             case ROLES.WORKER:
-                where.assignments = { some: { employeeId: req.user.employeeId } }
+                where.assignments = { some: { employeeId: req.user.id } }
                 break;
             case ROLES.ADMIN:
                 break;
@@ -113,10 +113,10 @@ router.put("/:id", authenticate, requireRole(ROLES.COORDINATOR, ROLES.ADMIN, ROL
         where.id = req.params.id
         switch (req.user.role) {
             case ROLES.COORDINATOR:
-                where.team = { is: { createdById: req.user.employeeId } };
+                where.team = { is: { createdById: req.user.id } };
                 break;
             case ROLES.LEADER:
-                where.team = {is:{leaderId:req.user.employeeId}}
+                where.team = {is:{leaderId:req.user.id}}
                 break;
             case ROLES.ADMIN:
                 break;
@@ -154,10 +154,10 @@ router.patch("/:id/status", authenticate, requireRole(ROLES.COORDINATOR, ROLES.A
 
         switch (req.user.role) {
             case ROLES.COORDINATOR:
-                where.team = { is: { createdById: req.user.employeeId } }
+                where.team = { is: { createdById: req.user.id } }
                 break;
             case ROLES.LEADER:
-                where.team = {is:{leaderId:req.user.employeeId}}
+                where.team = {is:{leaderId:req.user.id}}
                 break;
             case ROLES.ADMIN:
                 break;
@@ -210,10 +210,10 @@ router.delete("/:id/soft", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINA
         where.id = req.params.id
         switch (req.user.role) {
             case ROLES.LEADER:
-                where.team = {is:{leaderId:req.user.employeeId}}
+                where.team = {is:{leaderId:req.user.id}}
                 break;
             case ROLES.COORDINATOR:
-                where.team = { is: { createdById: req.user.employeeId } }
+                where.team = { is: { createdById: req.user.id } }
                 break;
             case ROLES.ADMIN:
                 break
@@ -247,10 +247,10 @@ router.patch("/:id/restore", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDI
         where.id = req.params.id
         switch (req.user.role) {
             case ROLES.LEADER:
-                where.team = {is:{leaderId:req.user.employeeId}}
+                where.team = {is:{leaderId:req.user.id}}
                 break;
             case ROLES.COORDINATOR:
-                where.team = { is: { createdById: req.user.employeeId } }
+                where.team = { is: { createdById: req.user.id } }
                 break;
             case ROLES.ADMIN:
                 break

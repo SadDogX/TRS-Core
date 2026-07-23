@@ -35,6 +35,7 @@ app.use('/api/employees', employeesRouter);
 app.get('/api/health', (req, res) => {
   res.json({ message:'Server is running',data:{status:'ok'} });
 });
+
 async function main() {
   try {
     await prisma.$connect();

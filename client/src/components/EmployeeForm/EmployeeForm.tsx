@@ -41,10 +41,10 @@ const EmployeeForm = ({ onSuccess, initData }: EmployeeFormProps) => {
 
     const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
         e.preventDefault()
-        let response;
         const {  createdAt, updatedAt, position, base, isDeleted, isBlocked, ...cleanData } = employeeData;
         const data: any = { ...cleanData };
         try {
+            let response;
             if (initData) {
                 if (password && password !== 'user123') {
                     data.password = password
@@ -88,8 +88,8 @@ const EmployeeForm = ({ onSuccess, initData }: EmployeeFormProps) => {
                         ))}
                     </select>
 
-                    <label htmlFor="employeeId">EXXXXXX</label>
-                    <input type="text" id="employeeId" disabled={!!initData} value={employeeData.employeeId || ''} onChange={(e) => setEmployeeData({ ...employeeData, employeeId: e.target.value })} />
+                    <label htmlFor="id">EXXXXXX</label>
+                    <input type="text" id="id" disabled={!!initData} value={employeeData.id || ''} onChange={(e) => setEmployeeData({ ...employeeData, id: e.target.value })} />
 
                     <label htmlFor="email">Почта</label>
                     <input type="text" id="email" value={employeeData.email || ''} onChange={(e) => setEmployeeData({ ...employeeData, email: e.target.value })} />

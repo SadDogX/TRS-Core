@@ -3,8 +3,7 @@ import * as teamController from '../controller/team.controller'
 import prisma from "../lib/prisma";
 import { authenticate } from "../middleware/auth";
 import { requireRole } from "../middleware/requireRole";
-import { ROLES, TEAM_STATUS, MSG, WORK_STATUSES, ENTITY, ROLESNAME } from "../constants";
-import { handleServerError } from "../utills/http/error";
+import { ROLES, MSG, WORK_STATUSES, ENTITY, ROLESNAME } from "../constants";
 
 const router = Router()
 /* --------------------------------- Create --------------------------------- */
@@ -26,7 +25,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         if (user.role === ROLES.COORDINATOR) {
             const teams = await prisma.team.findMany({
                 where: {
-                    createdById: user.employeeId,
+                    createdById: user.id,
                     isDeleted: false
                 }
             })
@@ -40,7 +39,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         if (user.role === ROLES.LEADER) {
             const teams = await prisma.team.findMany({
                 where: {
-                    leaderId: user.employeeId,
+                    leaderId: user.id,
                     isDeleted: false
                 }
             })
@@ -55,7 +54,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
                 where: {
                     members: {
                         some: {
-                            employeeId: user.employeeId
+                            id: user.id
                         },
                     },
                     isDeleted: false
@@ -76,7 +75,7 @@ router.get('/members', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR)
     try {
         const where: any = { isDeleted: false }
         if (req.user.role === ROLES.COORDINATOR)
-            where.team = { createdById: req.user.employeeId }
+            where.team = { createdById: req.user.id }
         const teamMember = await prisma.teamMember.findMany(
             {
                 where
@@ -98,7 +97,7 @@ router.get('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
         const where: any = { id: req.params.id };
         if (req.user.role === ROLES.COORDINATOR) {
             where.isDeleted = false;
-            where.createdById = req.user.employeeId
+            where.createdById = req.user.id
         }
         const team = await prisma.team.findFirst(where)
         if (!team) {
@@ -141,7 +140,7 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
             return res.status(400).json({ error: MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.EMPLOYEE, leaderId) })
         }
 
-        if (req.user.role === ROLES.COORDINATOR && target.createdById !== req.user.employeeId) {
+        if (req.user.role === ROLES.COORDINATOR && target.createdById !== req.user.id) {
             return res.json({ error: MSG.ACCESS_DENIED(ROLESNAME[ROLES.COORDINATOR]), data: { id: req.params.id } })
         }
 
@@ -183,7 +182,7 @@ router.delete('/:id/soft', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINA
         if (!team) {
             return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.TEAM, req.params.id) })
         }
-        if (req.user.role === ROLES.COORDINATOR && team.createdById !== req.user.employeeId) {
+        if (req.user.role === ROLES.COORDINATOR && team.createdById !== req.user.id) {
             return res.status(400).json({ error: MSG.ACCESS_DENIED(ROLESNAME[ROLES.COORDINATOR]) })
         }
         await prisma.team.update(
@@ -209,7 +208,7 @@ router.patch("/:id/restore", authenticate, requireRole(ROLES.ADMIN, ROLES.COORDI
         if (!team) {
             return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.TEAM, req.params.id) })
         }
-        if (req.user.role === ROLES.COORDINATOR && team.createdById !== req.user.employeeId) {
+        if (req.user.role === ROLES.COORDINATOR && team.createdById !== req.user.id) {
             return res.status(400).json({ error: MSG.ACCESS_DENIED(ROLESNAME[ROLES.COORDINATOR]) })
         }
         await prisma.team.update({
@@ -257,7 +256,7 @@ router.patch('/:id/assign', authenticate, requireRole(ROLES.COORDINATOR), async 
             return res.status(404).json({ error: MSG.TBL_IS_EMPTY(ENTITY.TEAM) })
         }
 
-        if (req.user.role === ROLES.COORDINATOR && req.user.employeeId !== target.createdById) {
+        if (req.user.role === ROLES.COORDINATOR && req.user.id !== target.createdById) {
             return res.status(403).json({ error: MSG.ACCESS_DENIED(ROLESNAME[ROLES.COORDINATOR]) })
         }
         if (work.status !== WORK_STATUSES.DRAFT) {
@@ -277,8 +276,8 @@ router.patch('/:id/assign', authenticate, requireRole(ROLES.COORDINATOR), async 
                 .filter(employe => !employe.isDeleted && !employe.removedAt)
                 .map(item => ({
                     workId,
-                    employeeId: item.employeeId,
-                    role: item.employeeId === target.leaderId ? ROLES.LEADER : ROLES.WORKER
+                    employeeId: item.id,
+                    role: item.id === target.leaderId ? ROLES.LEADER : ROLES.WORKER
                 }))
         })
 
@@ -302,7 +301,7 @@ router.patch("/:id/unassign", authenticate, requireRole(ROLES.ADMIN, ROLES.COORD
         if (!team.workId) {
             return res.status(400).json({ error: MSG.TEAM_ALREADY_FREE })
         }
-        if (req.user.role === ROLES.COORDINATOR && team.createdById !== req.user.employeeId) {
+        if (req.user.role === ROLES.COORDINATOR && team.createdById !== req.user.id) {
             return res.status(403).json({ error: MSG.ACCESS_DENIED(ROLESNAME[ROLES.COORDINATOR]) })
         }
 

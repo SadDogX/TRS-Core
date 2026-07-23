@@ -6,13 +6,20 @@ export type ApiResponse<T> = {
     error?: string;
 }
 
-export type MembersOfTeam={
-    teamId:string
-    memberIds:string[]
+export type AssignmentRole = typeof ASSIGNMENT_ROLES[keyof typeof ASSIGNMENT_ROLES]
+
+
+export type BusyEmployee = {
+    id: string,
+    role: AssignmentRole,
+    teamId: string
+}
+export type MembersOfTeam = {
+    teamId: string
+    memberIds: string[]
 }
 export type EmployeeType = {
     id: string,
-    employeeId: string,
     fullName: string,
     email: string,
     phone: string,
@@ -49,10 +56,10 @@ export type BaseType = {
 
 export type TeamType = {
     id: string,
-    name?:string,
+    name?: string,
     status: typeof TEAM_STATUS[keyof typeof TEAM_STATUS],
     createdById: string,
-    leader:EmployeeType,
+    leader: EmployeeType,
     leaderId: string,
     workId?: string,
     isDeleted: boolean,
@@ -80,8 +87,8 @@ export type WorkType = {
     isDeleted: boolean,
     createdAt: string,
     updatedAt: string,
-    workTypes?:WorkListType,
-    team?:TeamType
+    workTypes?: WorkListType,
+    team?: TeamType
 }
 
 export type WorkAssignmentType = {

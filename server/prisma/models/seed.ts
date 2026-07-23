@@ -1,28 +1,26 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../../src/lib/prisma';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
-
 async function main() {
-  const existing = await prisma.employee.findUnique({ where: { employeeId: 'E000001' } });
-  if (existing) {
-    console.log('Admin already exists');
-    return;
-  }
-
+  const position = await prisma.position.upsert({
+    where: { name: 'Admin' },
+    update: {},
+    create: { name: 'Admin' },
+  });
   const hash = await bcrypt.hash('admin123', 10);
-  await prisma.employee.create({
-    data: {
-      employeeId: 'E000001',
+
+  await prisma.employee.create( {
+    data:{
+      id: 'E000001',
       fullName: 'Admin',
       email: 'admin@weatherford.ru',
       phone: '+70000000000',
       passwordHash: hash,
       role: 'admin',
-      positionId:0
-    },
+      positionId: position.id,
+    }
   });
-  console.log('Admin created');
+  console.log('Admin ready: E000001 / admin123');
 }
 
 main()

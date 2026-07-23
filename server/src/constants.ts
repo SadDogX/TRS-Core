@@ -9,7 +9,7 @@ export const ROLES = {
 
 export const ASSIGNMENT_ROLES = {
     WORKER: 'worker',
-    SUPERVISOR: 'supervisor',
+    LEADER: 'leader',
 } as const;
 
 export const ROLESNAME: Record<string, string> = {

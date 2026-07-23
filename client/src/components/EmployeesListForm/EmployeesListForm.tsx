@@ -2,15 +2,15 @@ import React, { useEffect, useState } from 'react';
 import style from './EmployeesListForm.module.css';
 import { ENTITY, MSG } from '../../constants';
 import { api } from '../../api';
-import type { EmployeeType, MembersOfTeam } from '../../type';
+import type { EmployeeType, MembersOfTeam, TeamType } from '../../type';
 
 interface EmployeesListFormProps {
-    teamId: string;
+    team: TeamType;
     onSuccess: () => void
     initData: MembersOfTeam[]
 }
 
-const EmployeesListForm = ({ teamId, onSuccess, initData }: EmployeesListFormProps) => {
+const EmployeesListForm = ({ team, onSuccess, initData }: EmployeesListFormProps) => {
     const [employees, setEmployees] = useState<EmployeeType[]>([]);
     const [selectedIds, setSelectedIds] = useState<string[]>([])
 
@@ -21,8 +21,20 @@ const EmployeesListForm = ({ teamId, onSuccess, initData }: EmployeesListFormPro
     const fetchEmployees = async () => {
         try {
             const response = await api.getEmployees()
-            setEmployees(response.data || [])
-            initData && setSelectedIds(initData.find(data => data.teamId === teamId)?.memberIds ?? [])
+            const busyEmployeeIds = (await api.getBusyEmployeeIds()).data
+            const busyEmployee:string[] = (await api.getBusyEmployeeIds()).data.map(emp=>emp.id)
+            const freeEmployees = response.data
+                .filter(e => {
+                    const isBlocked = busyEmployeeIds.map(emp => emp.id === e.id && emp.teamId!==team.id)
+                    return isBlocked
+                })
+            // console.log(busyEmployeeIds);
+            // console.log('init:',initData);
+            
+            setEmployees(freeEmployees)
+            
+            initData && setSelectedIds(initData.find(data => data.teamId === team.id)?.memberIds ?? [])
+            setSelectedIds([...selectedIds,...busyEmployee])
         } catch (data: any) {
             console.error(MSG.TBL_IS_EMPTY(ENTITY.EMPLOYEE), data.error.message)
         }
@@ -31,9 +43,9 @@ const EmployeesListForm = ({ teamId, onSuccess, initData }: EmployeesListFormPro
         e.preventDefault();
         try {
 
-            const currentMembers = initData.find(data => data.teamId === teamId)?.memberIds ?? []
+            const currentMembers = initData.find(data => data.teamId === team.id)?.memberIds ?? []
             const subMembers = currentMembers.filter(member => !selectedIds.includes(member))
-            if (subMembers.length > 0) await api.updateMembersTeamById(teamId, subMembers)
+            if (subMembers.length > 0) await api.updateMembersTeamById(team.id, subMembers)
 
 
             const addMembers = selectedIds.filter(member => !currentMembers.includes(member))
@@ -41,7 +53,7 @@ const EmployeesListForm = ({ teamId, onSuccess, initData }: EmployeesListFormPro
             if (addMembers.length > 0) await Promise.all(
                 addMembers
                     .map(employeeId => {
-                        return api.addTeamMember(teamId, employeeId)
+                        return api.addTeamMember(team.id, employeeId)
                     }
                     ))
 
@@ -68,14 +80,14 @@ const EmployeesListForm = ({ teamId, onSuccess, initData }: EmployeesListFormPro
                         .filter((employee => !employee.isBlocked && !employee.isDeleted)).map((employee =>
                             <div className={style.employeeRow} key={employee.id}>
                                 <input type="checkbox"
-
+                                    disabled = {employees.some(emp=> emp.id===team.leaderId)}
                                     checked={selectedIds.includes(employee.id)}
                                     onChange={() => toggleEmployees(employee.id)} />
                                 <span >{employee.fullName}</span>
                             </div>
                         ))}
                 </div>
-                <button type="submit">{initData.length > 0 ? 'Обновить' : 'Добавить'}</button>
+                <button type="submit">{initData.some(e=>e.teamId===team.id&&e.memberIds.length>0) ? 'Обновить' : 'Добавить'}</button>
             </form>
         </>
     );

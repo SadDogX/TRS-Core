@@ -12,9 +12,10 @@ const LoginForm = () => {
 
     const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
         e.preventDefault();
+        console.log(employeeId, password);
         setError('');
         try {
-            await login(employeeId, password);
+            await login(employeeId, password );
             navigate('/employees');
         } catch {
             setError('Неверный EmployeeID или пароль');

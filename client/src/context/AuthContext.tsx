@@ -6,7 +6,7 @@ interface AuthState {
     user: EmployeeType | null;
     token: string | null;
     loading: boolean;
-    login: (enployeId: string, password: string) => Promise<void>;
+    login: ( id:string,password: string,) => Promise<void>;
     logout: () => void;
 }
 
@@ -47,9 +47,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         user,
         token,
         loading,
-        login: async (employeeId: string, password: string) => {
+        login: async (id: string, password: string) => {
             setLoading(true)
-            const response = await api.login({ employeeId, password })
+            const response = await api.login({ id, password })
             if (response.data) {
                 api.setToken(response.data.token)
                 setToken(response.data.token)

@@ -23,13 +23,16 @@ const TeamForm = ({ onSuccess, initData }: TeamFormProps) => {
     const [toastTypeMsg, setToastTypeMsg] = useState<string>('')
     const [toastMsg, setToastMsg] = useState<string>('')
 
-    const auth = useAuth()
-
+    
     useEffect(() => {
         const fetchListData = async () => {
             try {
+                const auth = useAuth()
+                const busyEmployees = ((await api.getBusyEmployeeIds()).data)
+                console.log('BUsy',busyEmployees);
+                
                 setOwner(auth.user)
-                setemployees((await api.getEmployees()).data)
+                setemployees((await api.getEmployees()).data.filter(emp=>!busyEmployees.some(busyEmp=>busyEmp.id===emp.id )))
             } catch (error) {
                 setToastTypeMsg(TOAST_MSG.ERROR)
                 setToastMsg("Ошибка загрузки справочников.")
@@ -44,10 +47,10 @@ const TeamForm = ({ onSuccess, initData }: TeamFormProps) => {
 
     const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement, SubmitEvent>) => {
         e.preventDefault()
-        let response;
         const { id, createdAt, updatedAt, isDeleted, workId, ...cleanData } = teamData;
         const data: any = { ...cleanData };
         try {
+            let response;
             if (initData) {
 
                 response = await api.updateTeam(initData.id, data)

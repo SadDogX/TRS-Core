@@ -21,6 +21,7 @@ function App() {
             <Route path="/bases" element={<div>Bases</div>} />
             <Route path="/positions" element={<div>Positions</div>} />
             <Route path="/profile" element={<div>Profile</div>} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="*" element={<Navigate to="/employees" />} />
           </Route>
         </Routes>

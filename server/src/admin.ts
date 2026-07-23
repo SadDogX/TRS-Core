@@ -5,13 +5,13 @@ async function getAdmin() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ 
-      employeeId: 'E000001', 
+      id: 'E000001', 
       password: 'admin123'  // ← password, не passwordHash
     })
   });
   
   const data = await response.json();
-  console.log(data);
+  // console.log(data);
 }
 
 getAdmin();

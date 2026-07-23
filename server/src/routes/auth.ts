@@ -9,13 +9,13 @@ const router = Router();
 /* --------------------------------- LOGING --------------------------------- */
 router.post('/login', async (req: Request, res: Response) => {
   try {
-    const { employeeId, password } = req.body;
-
-    if (!employeeId || !password) {
-      return res.status(400).json({ error: MSG.REQ_EMP_ID_AND_PASSWORD});
+    const { id, password } = req.body;
+    // console.log(id,' ',password)
+    if (!id || !password) {
+      return res.status(400).json({ error: MSG.REQ_EMP_ID_AND_PASSWORD });
     }
     const employee = await prisma.employee.findUnique({
-      where: { employeeId },
+      where: { id: id },
     });
 
     if (!employee) {
@@ -29,7 +29,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     const token = jwt.sign(
       {
-        employeeId: employee.employeeId,
+        id: employee.id,
         role: employee.role,
       },
       process.env.JWT_SECRET!,
@@ -37,11 +37,10 @@ router.post('/login', async (req: Request, res: Response) => {
     );
 
     const { passwordHash, ...user } = employee;
-    res.json({message:'Login successful', data:{token, user} });
+     res.json({ message: 'Login successful', data: { token, user } });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: MSG.SERVER_ERROR });
     console.error('POST /api/auth/login:', error);
+     res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
 

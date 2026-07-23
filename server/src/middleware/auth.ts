@@ -18,6 +18,8 @@ export const authenticate = async (
 ) => {
   try {
     const authHeader = req.headers.authorization;
+    // console.log('authHeader',authHeader);
+    
     if (!authHeader?.startsWith('Bearer ')) {
       return res.status(401).json({ error: 'Нет токена' });
     }
@@ -26,7 +28,7 @@ export const authenticate = async (
     const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
 
     const user = await prisma.employee.findUnique({
-      where: { employeeId: decoded.employeeId },
+      where: { id: decoded.id },
     });
 
     if (!user) {

@@ -4,6 +4,7 @@ import prisma from '../lib/prisma';
 import { authenticate } from '../middleware/auth';
 import { requireRole } from '../middleware/requireRole';
 import { ENTITY, MSG, ROLES, ROLESNAME } from '../constants';
+import * as employeeController from '../controller/employee.controller'
 import { getEmpployeeDependencies } from '../services/employee.service';
 
 const router = Router();
@@ -11,19 +12,18 @@ const router = Router();
 /* --------------------------------- CREATE --------------------------------- */
 router.post('/', authenticate, requireRole(ROLES.ADMIN), async (req: Request, res: Response) => {
   try {
-    const { employeeId, fullName, positionId, email, phone, password, role, baseId } = req.body;
-    console.log(employeeId)
-    if (!employeeId || !/^E\d{6}$/.test(employeeId)) {
-      return res.status(400).json({ error: MSG.STR_EXXXXXX_WRONG_FORMAT(employeeId) });
+    const { id, fullName, positionId, email, phone, password, role, baseId } = req.body;
+    if (!id || !/^E\d{6}$/.test(id)) {
+      return res.status(400).json({ error: MSG.STR_EXXXXXX_WRONG_FORMAT(id) });
     }
 
     if (!password || password.length < 6) {
       return res.status(400).json({ error: MSG.STR_PASSWORD_WRONG_FORMAT });
     }
 
-    const existing = await prisma.employee.findUnique({ where: { employeeId } });
+    const existing = await prisma.employee.findUnique({ where: { id } });
     if (existing) {
-      return res.status(400).json({ error: MSG.ENTITY_ALREADY_HAVE(ENTITY.EMPLOYEE, employeeId) });
+      return res.status(400).json({ error: MSG.ENTITY_ALREADY_HAVE(ENTITY.EMPLOYEE, id) });
     }
 
     if (email) {
@@ -47,7 +47,7 @@ router.post('/', authenticate, requireRole(ROLES.ADMIN), async (req: Request, re
 
     const employee = await prisma.employee.create({
       data: {
-        employeeId,
+        id: id,
         fullName,
         positionId,
         email,
@@ -59,7 +59,7 @@ router.post('/', authenticate, requireRole(ROLES.ADMIN), async (req: Request, re
     });
 
     const { passwordHash, ...result } = employee;
-    res.status(201).json({ message: MSG.ENTITY_WAS_CREATED(ENTITY.EMPLOYEE, employeeId), data: result });
+    res.status(201).json({ message: MSG.ENTITY_WAS_CREATED(ENTITY.EMPLOYEE, id), data: result });
   } catch (error) {
     console.error('POST /api/employees:', error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
@@ -73,7 +73,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
 
 
     if (req.user.role === ROLES.WORKER) {
-      where.employeeId = req.user.employeeId;
+      where.employeeId = req.user.id;
     } else {
       if (baseId) where.baseId = String(baseId);
       if (role) where.role = String(role);
@@ -100,19 +100,19 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     res.status(500).json({ error: MSG.SERVER_ERROR });
   }
 });
+router.get('/busy',authenticate,requireRole(ROLES.COORDINATOR,ROLES.ADMIN),employeeController.getBusyEmployee)
 /* ------------------------------- READ BY ID ------------------------------- */
 // GET /api/employees/:id
 router.get('/:id', authenticate, async (req: Request, res: Response) => {
   try {
-    const employee = await prisma.employee.findUnique({
-      where: { employeeId: req.params.id },
+    const employee = await prisma.employee.findFirst({
+      where: { id:req.params.id },
     });
-
     if (!employee) {
       return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE, req.params.id) });
     }
 
-    if (req.user.role === 'worker' && req.user.employeeId !== req.params.id) {
+    if (req.user.role === ROLES.WORKER && (req.user.id !== req.params.id||req.user.id!== req.params.id)) {
       return res.status(403).json({ error: MSG.ACCESS_DENIED(ROLESNAME[ROLES.WORKER]) });
     }
 
@@ -159,7 +159,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
     if (req.user.role === ROLES.COORDINATOR) {
       if (req.body.isBlocked !== undefined) {
         const updated = await prisma.employee.update({
-          where: { employeeId: req.params.id },
+          where: { id: req.params.id },
           data: { isBlocked: req.body.isBlocked },
         });
 
@@ -171,11 +171,11 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
     }
 
     // Worker может обновить только свой email
-    if (req.user.role === ROLES.WORKER && req.user.employeeId === req.params.id) {
+    if (req.user.role === ROLES.WORKER && req.user.id === req.params.id) {
       const { email } = req.body;
       if (email !== undefined) {
         const updated = await prisma.employee.update({
-          where: { employeeId: req.params.id },
+          where: { id: req.params.id },
           data: { email },
         });
 
@@ -209,7 +209,7 @@ router.patch('/:id/toggle-block', authenticate, requireRole(ROLES.ADMIN, ROLES.C
       data: { isBlocked: !target.isBlocked },
     });
 
-    res.json({  message: MSG.ENTITY_WAS_UPDATED(ENTITY.EMPLOYEE, updated.employeeId), data: { isBlocked: updated.isBlocked }, });
+    res.json({  message: MSG.ENTITY_WAS_UPDATED(ENTITY.EMPLOYEE, updated.id), data: { isBlocked: updated.isBlocked }, });
   } catch (error) {
     console.error('PATCH /api/employees/:id/toggle-block:', error);
     res.status(500).json({ error: MSG.SERVER_ERROR });
@@ -219,7 +219,7 @@ router.patch('/:id/toggle-block', authenticate, requireRole(ROLES.ADMIN, ROLES.C
 router.delete('/:id/soft', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
   try {
     const updated = await prisma.employee.update({
-      where: { employeeId: req.params.id },
+      where: { id: req.params.id },
       data: { isDeleted: true }
     });
     const { passwordHash, ...result } = updated;
@@ -257,7 +257,7 @@ router.delete('/:id/hard', authenticate, requireRole(ROLES.ADMIN), async (req: R
 router.patch('/:id/restore', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
   try {
     const updated = await prisma.employee.update({
-      where: { employeeId: req.params.id },
+      where: { id: req.params.id },
       data: { isDeleted: false }
     });
     const { passwordHash, ...result } = updated;

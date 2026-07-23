@@ -1,39 +1,42 @@
 model Employee {
-  id           String  @id @default(uuid())
-  employeeId   String  @unique
+  id          String  @unique
   fullName     String
   email        String?  @unique
-  phone        String?  @unique 
+  phone        String?  @unique
   passwordHash String
-  role         String  @default("worker") // admin, coordinator, worker
-  isBlocked    Boolean @default(false)
-  /* Default fields---------------------------------------------- */
-  isDeleted    Boolean @default(false)
+  role         String   @default("worker") // admin, coordinator, worker
+  isBlocked    Boolean  @default(false)
+  /*** Default fields----------------------------------------------*/
+  isDeleted    Boolean  @default(false)
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
 
-/* -------------------------------------------------------------------------- */
+  /*** --------------------------------------------------------------------------*/
   baseId String?
   base   Base?   @relation(fields: [baseId], references: [id])
 
   positionId Int      @default(1)
-  position    Position @relation("EmplPostion", fields: [positionId], references: [id])
+  position   Position @relation("EmplPostion", fields: [positionId], references: [id])
 
   teamMemberships TeamMember[]
   workAssignments WorkAssignment[]
-  team Team[] @relation("TeamCreator")
-  ledTeams Team[] @relation("MakeLeader")
+  team            Team[]           @relation("TeamCreator")
+  ledTeams        Team[]           @relation("MakeLeader")
 }
 
 model Position {
-  id   Int    @id @default(autoincrement())
-  name String @unique
-  /* Default fields---------------------------------------------- */
-  isDeleted    Boolean @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt @default(now())
-/* -------------------------------------------------------------------------- */
-  employee Employee[] @relation("EmplPostion")
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  /**
+   * Default fields----------------------------------------------
+   */
+  isDeleted Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
+  /**
+   * --------------------------------------------------------------------------
+   */
+  employee  Employee[] @relation("EmplPostion")
 }
 
 model Base {
@@ -41,12 +44,15 @@ model Base {
   name      String
   city      String
   address   String?
-  /* Default fields---------------------------------------------- */
-  isDeleted    Boolean @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt @default(now())
-  /* -------------------------------------------------------------------------- */
+  /**
+   * Default fields----------------------------------------------
+   */
+  isDeleted Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
+  /**
+   * --------------------------------------------------------------------------
+   */
   employees Employee[]
   // equipment Equipment[]
-  
 }

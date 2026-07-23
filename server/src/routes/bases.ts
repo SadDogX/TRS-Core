@@ -29,7 +29,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       include: {
         employees: {
           select: {
-            employeeId: true,
+            id: true,
             fullName: true,
             role: true,
           },
@@ -50,7 +50,7 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
       include: {
         employees: {
           select: {
-            employeeId: true,
+            id: true,
             fullName: true,
             role: true,
           },

@@ -14,8 +14,8 @@ import EmployeesListForm from "../../components/EmployeesListForm/EmployeesListF
 
 
 const TeamPage = () => {
-    const [teams, setTeam] = useState<TeamType[]>([])
-    const [teamId, setTeamId] = useState<string>('')
+    const [teams, setTeams] = useState<TeamType[]>([])
+    const [team, setTeam] = useState<TeamType>(null)
     const [employees, setEmployees] = useState<EmployeeType[]>([])
     const [modalTeamOpen, setmodalTeamOpen] = useState<boolean>(false)
     const [modalMemberOpen, setModalMemberOpen] = useState<boolean>(false)
@@ -45,14 +45,14 @@ const TeamPage = () => {
         const result: MembersOfTeam[] = await Promise.all(
             response.data.map(async (team) => {
                 const members = await api.getMembersOfTeam(team.id)
-                return { teamId: team.id, memberIds: members.data as string[] }
+                return {teamId: team.id, memberIds: members.data as string[]}
             })
         )
 
         setMembersOfTeam(result)
         const employees = await api.getEmployees()
         setEmployees(employees.data || [])
-        setTeam(response.data || []);
+        setTeams(response.data || []);
     };
 
     const deleteTeam = async (id: string | undefined) => {
@@ -87,7 +87,7 @@ const TeamPage = () => {
                 <EmployeesListForm initData={membersOfTeam} onSuccess={() => {
                     setModalMemberOpen(false)
                     fetchTeam()
-                }} teamId={teamId}>
+                }} team={team}>
                 </EmployeesListForm>
             </Modal>
             <Toast
@@ -140,7 +140,7 @@ const TeamPage = () => {
                                         <FiUserX className={style.cardIcons} size={32} />
                                     </button>
                                     <button title="Добавить сотрудников" onClick={() => {
-                                        setTeamId(team.id)
+                                        setTeam(team)
                                         setModalMemberOpen(true)
                                     }}>
                                         <FiUserPlus size={32} className={style.cardIcons} />

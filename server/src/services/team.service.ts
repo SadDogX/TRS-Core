@@ -14,7 +14,6 @@ export async function createTeam(dto: any, user: any) {
     }
 
     if (leader.isBlocked) {
-        console.log(leader.fullName + ':' + leader.isBlocked)
         throw new Error(MSG.EMP_IS_BLOCKED)
     }
 
@@ -44,13 +43,13 @@ export async function createLinkMembers(employeeId: string, teamId: string, user
 
         throw new Error(MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.TEAM, teamId))
     }
-    if (user.role === ROLES.COORDINATOR && user.employeeId !== team.createdById) {
+    if (user.role === ROLES.COORDINATOR && user.id !== team.createdById) {
         throw new Error(MSG.ACCESS_DENIED(ROLESNAME[ROLES.COORDINATOR]))
     }
 
     const existing = await prisma.teamMember.findFirst({
         where: {
-            employeeId: employeeId,
+            id: employeeId,
             isDeleted: false,
             removedAt: null,
             teamId: teamId

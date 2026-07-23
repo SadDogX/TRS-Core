@@ -9,13 +9,13 @@ const router = Router()
 /* --------------------------------- Create --------------------------------- */
 router.post("/:workId/assignments", authenticate, requireRole(ROLES.COORDINATOR), async (req: Request, res: Response) => {
     try {
-        const { employeeId, role } = req.body
-        const employee = await prisma.employee.findFirst({ where: { id: employeeId } })
+        const { id, role } = req.body
+        const employee = await prisma.employee.findFirst({ where: { id: id } })
         if (!employee) {
-            return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE,employeeId) })
+            return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.EMPLOYEE,id) })
         }
         if (employee.isDeleted) {
-            return res.status(400).json({ error: MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.EMPLOYEE,employeeId) })
+            return res.status(400).json({ error: MSG.ENTITY_WAS_SOFT_DELETE(ENTITY.EMPLOYEE,id) })
         }
         if (employee.isBlocked) {
             return res.status(400).json({ error: MSG.EMP_IS_BLOCKED })
@@ -50,7 +50,7 @@ router.post("/:workId/assignments", authenticate, requireRole(ROLES.COORDINATOR)
             data: {
                 workId: work.id,
                 employeeId: employee.id,
-                role
+                workRole:role
             }
         })
         res.status(201).json({ message: MSG.ENTITY_WAS_CREATED(ENTITY.WORK_ASSIGNMENT,assignment.id), data: assignment })
@@ -82,13 +82,13 @@ router.get('/:workId/assignments', authenticate, requireRole(ROLES.ADMIN, ROLES.
         where.workId = work.id
         switch (req.user.role) {
             case ROLES.COORDINATOR:
-                where.work = { team: { is: { createdById: req.user.employeeId } } }
+                where.work = { team: { is: { createdById: req.user.id } } }
                 break
             case ROLES.LEADER:
-                where.work = { supervisorId: req.user.employeeId }
+                where.work = { supervisorId: req.user.id }
                 break
             case ROLES.WORKER:
-                where.employeeId = req.user.employeeId
+                where.employeeId = req.user.id
                 break
             case ROLES.ADMIN:
                 break
@@ -126,13 +126,13 @@ router.get('/:workId/assignments/:id', authenticate, requireRole(ROLES.ADMIN, RO
         where.id = req.params.id
         switch (req.user.role) {
             case ROLES.COORDINATOR:
-                where.work = { team: { is: { createdById: req.user.employeeId } } }
+                where.work = { team: { is: { createdById: req.user.id } } }
                 break
             case ROLES.LEADER:
-                where.work = { supervisorId: req.user.employeeId }
+                where.work = { supervisorId: req.user.id }
                 break
             case ROLES.WORKER:
-                where.employeeId = req.user.employeeId
+                where.employeeId = req.user.id
                 break
             case ROLES.ADMIN:
                 break
@@ -168,7 +168,7 @@ router.patch('/:workId/updaterole/:id', authenticate, requireRole(ROLES.COORDINA
             return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,req.params.workId) })
         }
 
-        if (req.user.role === ROLES.COORDINATOR && req.user.employeeId !== work.team?.createdById) {
+        if (req.user.role === ROLES.COORDINATOR && req.user.id !== work.team?.createdById) {
             return res.status(403).json({ error: MSG.ACCESS_DENIED(ROLES.COORDINATOR) })
         }
         const { newRole } = req.body
@@ -182,7 +182,7 @@ router.patch('/:workId/updaterole/:id', authenticate, requireRole(ROLES.COORDINA
                 id: req.params.id,
                 workId: work.id,
             },
-            data: { role: newRole }
+            data: { workRole: newRole }
         })
         res.status(200).json({ message: MSG.ENTITY_WAS_UPDATED(ENTITY.WORK_ASSIGNMENT,assignment.id),data:assignment })
 
@@ -226,7 +226,7 @@ router.delete('/:workId/assignments/:id/soft', authenticate, requireRole(ROLES.A
             return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,req.params.workId) })
         }
 
-        if(req.user.role===ROLES.COORDINATOR&& req.user.employeeId!==work.team?.createdById){
+        if(req.user.role===ROLES.COORDINATOR&& req.user.id!==work.team?.createdById){
             return res.status(403).json({error:MSG.ACCESS_DENIED})
         }
         await prisma.workAssignment.update({
@@ -254,7 +254,7 @@ router.patch('/:workId/assignments/:id/restore', authenticate, requireRole(ROLES
             return res.status(404).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.WORK,req.params.workId) })
         }
 
-        if(req.user.role===ROLES.COORDINATOR&& req.user.employeeId!==work.team?.createdById){
+        if(req.user.role===ROLES.COORDINATOR&& req.user.id!==work.team?.createdById){
             return res.status(403).json({error:MSG.ACCESS_DENIED})
         }
         await prisma.workAssignment.update({
