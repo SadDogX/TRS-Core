@@ -2,7 +2,6 @@ import { PrismaClient } from '@prisma/client';
 import type { BusyEmployee } from '../type'
 import { ASSIGNMENT_ROLES } from '../constants';
 import { applyEmployeeScope } from '../query';
-import { log } from 'node:console';
 
 export async function getEmpployeeDependencies(prisma: any, id: string) {
     const [teamMember, teamsAsLeader, teamsAsCreator, workAssignment] = await Promise.all([
@@ -31,7 +30,7 @@ export async function getBusyEmployee(prisma: PrismaClient, user: any) {
           where:{...applyEmployeeScope(user)},
             select: {
                 teamId: true,
-                id: true
+                employeeId: true
             }
         }
     )
@@ -52,7 +51,7 @@ export async function getBusyEmployee(prisma: PrismaClient, user: any) {
             teamId: item.id
         })),
         ...busyWorkers.map(item => ({
-            id: item.id,
+            id: item.employeeId,
             role: ASSIGNMENT_ROLES.WORKER,
             teamId: item.teamId
         }))]

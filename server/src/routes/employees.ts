@@ -73,7 +73,7 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
 
 
     if (req.user.role === ROLES.WORKER) {
-      where.employeeId = req.user.id;
+      where.id = req.user.id;
     } else {
       if (baseId) where.baseId = String(baseId);
       if (role) where.role = String(role);

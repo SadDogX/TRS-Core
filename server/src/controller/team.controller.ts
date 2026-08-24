@@ -18,7 +18,9 @@ export const createTeam: Controller = async (req, res) => {
 
 export const createLinkMembers: Controller = async (req, res) => {
     try {
-        const members = await teamService.createLinkMembers(req.body.id, req.params.teamId, req.user)
+        const members = await teamService.createLinkMembers(req.body.employeeId, req.params.teamId, req.user)
+        // console.log('members',members);
+        
         return res.status(201).json({
             message: MSG.ENTITY_WAS_CREATED(ENTITY.TEAMMEMBERS, req.params.teamId),
             data: members

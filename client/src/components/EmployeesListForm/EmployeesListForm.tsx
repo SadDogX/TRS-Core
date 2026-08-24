@@ -1,8 +1,10 @@
+/* ------------- Форма выбора персонала для включения в бригаду ------------- */
+
 import React, { useEffect, useState } from 'react';
 import style from './EmployeesListForm.module.css';
-import { ENTITY, MSG } from '../../constants';
+import { ASSIGNMENT_ROLES, ENTITY, MSG } from '../../constants';
 import { api } from '../../api';
-import type { EmployeeType, MembersOfTeam, TeamType } from '../../type';
+import { type BusyEmployee, type EmployeeType, type MembersOfTeam, type TeamType } from '../../type';
 
 interface EmployeesListFormProps {
     team: TeamType;
@@ -13,7 +15,7 @@ interface EmployeesListFormProps {
 const EmployeesListForm = ({ team, onSuccess, initData }: EmployeesListFormProps) => {
     const [employees, setEmployees] = useState<EmployeeType[]>([]);
     const [selectedIds, setSelectedIds] = useState<string[]>([])
-
+    const [busyEmployees, setBusyEmployees] = useState<BusyEmployee[]>([])
     useEffect(() => {
         fetchEmployees()
     }, [])
@@ -21,20 +23,20 @@ const EmployeesListForm = ({ team, onSuccess, initData }: EmployeesListFormProps
     const fetchEmployees = async () => {
         try {
             const response = await api.getEmployees()
-            const busyEmployeeIds = (await api.getBusyEmployeeIds()).data
-            const busyEmployee:string[] = (await api.getBusyEmployeeIds()).data.map(emp=>emp.id)
+            const busyEmployee = (await api.getBusyEmployeeIds()).data
+            setBusyEmployees(busyEmployee)
             const freeEmployees = response.data
                 .filter(e => {
-                    const isBlocked = busyEmployeeIds.map(emp => emp.id === e.id && emp.teamId!==team.id)
-                    return isBlocked
+                    const isBusyInOtherTeam = busyEmployee.some(emp => emp.id === e.id && emp.teamId !== team.id)
+                    return !isBusyInOtherTeam
                 })
             // console.log(busyEmployeeIds);
             // console.log('init:',initData);
-            
+
             setEmployees(freeEmployees)
-            
-            initData && setSelectedIds(initData.find(data => data.teamId === team.id)?.memberIds ?? [])
-            setSelectedIds([...selectedIds,...busyEmployee])
+
+            const currentMembers = initData.find(data => data.teamId === team.id)?.memberIds ?? []
+            setSelectedIds([...currentMembers,team.leaderId])
         } catch (data: any) {
             console.error(MSG.TBL_IS_EMPTY(ENTITY.EMPLOYEE), data.error.message)
         }
@@ -44,11 +46,13 @@ const EmployeesListForm = ({ team, onSuccess, initData }: EmployeesListFormProps
         try {
 
             const currentMembers = initData.find(data => data.teamId === team.id)?.memberIds ?? []
+            // setSelectedIds(currentMembers)
             const subMembers = currentMembers.filter(member => !selectedIds.includes(member))
             if (subMembers.length > 0) await api.updateMembersTeamById(team.id, subMembers)
 
 
             const addMembers = selectedIds.filter(member => !currentMembers.includes(member))
+            // console.log(addMembers);
 
             if (addMembers.length > 0) await Promise.all(
                 addMembers
@@ -80,14 +84,16 @@ const EmployeesListForm = ({ team, onSuccess, initData }: EmployeesListFormProps
                         .filter((employee => !employee.isBlocked && !employee.isDeleted)).map((employee =>
                             <div className={style.employeeRow} key={employee.id}>
                                 <input type="checkbox"
-                                    disabled = {employees.some(emp=> emp.id===team.leaderId)}
+                                    disabled={busyEmployees.some(
+                                        empl => empl.id === employee.id && empl.role === ASSIGNMENT_ROLES.LEADER
+                                    )}
                                     checked={selectedIds.includes(employee.id)}
                                     onChange={() => toggleEmployees(employee.id)} />
                                 <span >{employee.fullName}</span>
                             </div>
                         ))}
                 </div>
-                <button type="submit">{initData.some(e=>e.teamId===team.id&&e.memberIds.length>0) ? 'Обновить' : 'Добавить'}</button>
+                <button type="submit">{initData.some(e => e.teamId === team.id && e.memberIds.length > 0) ? 'Обновить' : 'Добавить'}</button>
             </form>
         </>
     );

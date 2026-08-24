@@ -49,10 +49,10 @@ export async function createLinkMembers(employeeId: string, teamId: string, user
 
     const existing = await prisma.teamMember.findFirst({
         where: {
-            id: employeeId,
+            employeeId,
+            teamId,
             isDeleted: false,
             removedAt: null,
-            teamId: teamId
         }
     })
     if (existing) {

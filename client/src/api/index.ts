@@ -24,9 +24,8 @@ export const api = {
         // console.log("HEADERS:", headers);
         const res = await fetch(`${API_URL}${path}`, { ...options, headers });
 
-        if (res.status === 401) {
+        if (res.status === 401 && path !== '/auth/login') {
             this.clearToken();
-            // window.location.href = '/login';
         }
         const response = await res.json()
         if (!res.ok) {

@@ -1,41 +1,50 @@
 model Work {
-  id           String           @id @default(uuid())
-  name         String?           @unique
-  status       String           @default("draft")
-  wellId       String // скважина, пока строкой
-  /* -----------------------------Links--------------------------------------------- */
-  workTypeId   Int 
-  workType     WorkType? @relation("WorkTypes",fields: [workTypeId],references: [id])
-  team         Team?             @relation("TeamWork")
-  assignments  WorkAssignment[]
-  /* Default fields---------------------------------------------- */
-  isDeleted    Boolean @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt @default(now())
+  id          String           @id @default(uuid())
+  name        String?          @unique
+  status      String           @default("draft")
+  wellId      String // скважина, пока строкой
+  /**
+   * -----------------------------Links---------------------------------------------
+   */
+  workTypeId  Int
+  workType    WorkType?        @relation("WorkTypes", fields: [workTypeId], references: [id])
+  team        Team?            @relation("TeamWork")
+  assignments WorkAssignment[]
+  /**
+   * Default fields----------------------------------------------
+   */
+  isDeleted   Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @default(now()) @updatedAt
 }
-        
+
 model WorkAssignment {
-  id          String    @id @default(uuid())
-  workId      String
-  work        Work      @relation(fields: [workId], references: [id])
-  employeeId  String
-  employee    Employee  @relation(fields: [employeeId], references: [id])
-  workRole     String    @default("worker")
-  startDate   DateTime  @default(now())
-  endDate     DateTime?
-    /* Default fields---------------------------------------------- */
-  isDeleted    Boolean @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt @default(now())
+  id         String    @id @default(uuid())
+  workId     String
+  work       Work      @relation(fields: [workId], references: [id])
+  employeeId String
+  employee   Employee  @relation(fields: [employeeId], references: [id])
+  workRole   String    @default("worker")
+  startDate  DateTime  @default(now())
+  endDate    DateTime?
+  /**
+   * Default fields----------------------------------------------
+   */
+  isDeleted  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now()) @updatedAt
+
   @@unique([workId, employeeId])
 }
 
-model WorkType{
-  id Int @id @default(autoincrement())
-  name String @unique // Casing, tubing, PNA, Drilling
-  work Work[] @relation("WorkTypes")
-    /* Default fields---------------------------------------------- */
-  isDeleted    Boolean @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt @default(now())
+model WorkType {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique // Casing, tubing, PNA, Drilling
+  work      Work[]   @relation("WorkTypes")
+  /**
+   * Default fields----------------------------------------------
+   */
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }

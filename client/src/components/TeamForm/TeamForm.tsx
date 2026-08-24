@@ -1,5 +1,7 @@
+/* Форма создания и обновления бригады */
+
 import { useEffect, useState } from "react"
-import type { EmployeeType, TeamType } from "../../type"
+import type {EmployeeType, TeamType } from "../../type"
 import { api } from "../../api"
 import style from './Team.module.css'
 import Toast, { TOAST_MSG } from "../Toast/Toast"
@@ -17,23 +19,27 @@ const TeamForm = ({ onSuccess, initData }: TeamFormProps) => {
     const [teamData, setTeamData] = useState<Partial<TeamType>>({})
     const [owner, setOwner] = useState<EmployeeType>(null)
     const [employees, setemployees] = useState<EmployeeType[]>([])
-    // const [work, setWork] = useState<WorkerType>(null)
 
     const [toastOpen, setToastOpen] = useState<boolean>(false)
     const [toastTypeMsg, setToastTypeMsg] = useState<string>('')
     const [toastMsg, setToastMsg] = useState<string>('')
-
     
+    const auth = useAuth()
+
     useEffect(() => {
+
         const fetchListData = async () => {
             try {
-                const auth = useAuth()
-                const busyEmployees = ((await api.getBusyEmployeeIds()).data)
-                console.log('BUsy',busyEmployees);
-                
                 setOwner(auth.user)
-                setemployees((await api.getEmployees()).data.filter(emp=>!busyEmployees.some(busyEmp=>busyEmp.id===emp.id )))
-            } catch (error) {
+                const busyEmployees = ((await api.getBusyEmployeeIds()).data||[])
+                const employees = ((await api.getEmployees()).data||[])
+                const fetchEmployees = employees.filter(employee=>{
+                   const isBusyInOtherTeams =  busyEmployees.some(busyEmp=>busyEmp.id===employee.id && busyEmp.teamId!==initData?.id)
+                   return !isBusyInOtherTeams && !employee.isBlocked && !employee.isDeleted
+                })
+
+                setemployees(fetchEmployees)
+            } catch (error: any) {
                 setToastTypeMsg(TOAST_MSG.ERROR)
                 setToastMsg("Ошибка загрузки справочников.")
             }
@@ -42,6 +48,8 @@ const TeamForm = ({ onSuccess, initData }: TeamFormProps) => {
         if (initData) {
             setTeamData(initData)
         }
+
+
         fetchListData()
     }, [initData])
 
@@ -52,11 +60,9 @@ const TeamForm = ({ onSuccess, initData }: TeamFormProps) => {
         try {
             let response;
             if (initData) {
-
                 response = await api.updateTeam(initData.id, data)
             } else {
-                if(!owner) return
-                console.log(owner)
+                if (!owner) return
                 data.createdById = owner.id
                 response = await api.createTeam(data)
             }
@@ -88,15 +94,14 @@ const TeamForm = ({ onSuccess, initData }: TeamFormProps) => {
                         <option value="" disabled>Выберите...</option>
                         {
                             employees
-                            .filter((emp)=>!emp.isBlocked && !emp.isDeleted)
-                            .map(employee => (
-                                <option key={employee.id} value={employee.id}>{employee.fullName}</option>
-                            ))
+                                .map(employee => (
+                                    <option key={employee.id} value={employee.id}>{employee.fullName}</option>
+                                ))
                         }
                     </select>
 
                     <label htmlFor="status">Статус</label>
-                    <select id="status" value={teamData.status || ''} onChange={(e) => setTeamData({ ...teamData, status: e.target.value as TeamStatus})}>
+                    <select id="status" value={teamData.status || ''} onChange={(e) => setTeamData({ ...teamData, status: e.target.value as TeamStatus })}>
                         <option value="" disabled>Выберите...</option>
                         {
                             Object.values(TEAM_STATUS).map(status =>

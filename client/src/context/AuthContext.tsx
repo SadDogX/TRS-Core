@@ -6,7 +6,7 @@ interface AuthState {
     user: EmployeeType | null;
     token: string | null;
     loading: boolean;
-    login: ( id:string,password: string,) => Promise<void>;
+    login: (id: string, password: string,) => Promise<void>;
     logout: () => void;
 }
 
@@ -48,20 +48,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         token,
         loading,
         login: async (id: string, password: string) => {
-            setLoading(true)
-            const response = await api.login({ id, password })
-            if (response.data) {
-                api.setToken(response.data.token)
-                setToken(response.data.token)
-                setUser(response.data.user)
+            try {
+                setLoading(true)
+                const response = await api.login({ id, password })
+                if (response.data) {
+                    api.setToken(response.data.token)
+                    setToken(response.data.token)
+                    setUser(response.data.user)
+                }
+            } finally  {
+                setLoading(false)
+
             }
-            setLoading(false)
         },
         logout: () => {
             api.clearToken()
             setToken(null)
             setUser(null)
-         }
+        }
     }
 
     return (

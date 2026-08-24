@@ -57,7 +57,7 @@ const EmployeeForm = ({ onSuccess, initData }: EmployeeFormProps) => {
 
             setTimeout(() => {
                 setEmployeeData({})
-                setPassword('admin123')
+                setPassword('user123')
                 onSuccess?.();
             }, 500)
 

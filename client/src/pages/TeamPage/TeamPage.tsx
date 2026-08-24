@@ -6,7 +6,7 @@ import Toast, { TOAST_MSG } from "../../components/Toast/Toast"
 import { ENTITY, MSG, TEAM_STATUS_COLOR } from "../../constants"
 import style from './TeamPage.module.css'
 import ConfirmModal from "../../components/ConfirmModal/ConfirmModal"
-import { FiEdit, FiTrash2, FiUserPlus, FiUserX, FiXCircle } from 'react-icons/fi'
+import { FiEdit, FiTrash2, FiUserPlus } from 'react-icons/fi'
 
 import TeamForm from "../../components/TeamForm/TeamForm"
 import EmployeesListForm from "../../components/EmployeesListForm/EmployeesListForm"
@@ -129,16 +129,7 @@ const TeamPage = () => {
                             <span>{`Бригадир: ${employees.find((employee) => employee.id === team.leaderId)?.fullName || 'Не назначен'}`}</span>
                             <div className={style.cardFooter}>
                                 <div className={style.cardFooterIconList}>
-                                    <button title="Отчистить бригаду" onClick={() => {
-
-                                    }}>
-                                        <FiXCircle className={style.cardIcons} size={32} />
-                                    </button>
-                                    <button title="Удалить сотрудников" onClick={() => {
-
-                                    }}>
-                                        <FiUserX className={style.cardIcons} size={32} />
-                                    </button>
+     
                                     <button title="Добавить сотрудников" onClick={() => {
                                         setTeam(team)
                                         setModalMemberOpen(true)

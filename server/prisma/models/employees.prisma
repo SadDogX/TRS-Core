@@ -1,5 +1,5 @@
 model Employee {
-  id          String  @unique
+  id          String  @id
   fullName     String
   email        String?  @unique
   phone        String?  @unique
