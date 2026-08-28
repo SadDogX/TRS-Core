@@ -25,12 +25,13 @@ export type EmployeeType = {
     phone: string,
     role: typeof ROLES[keyof typeof ROLES],
     baseId?: string,
+    ledTeams:TeamMemberType[],
     positionId: number,
+    teamMemberships:TeamMemberType[],
     isBlocked: boolean,
     isDeleted: boolean,
     createdAt: string,
     updatedAt: string
-
     position?: PositionType;
     base?: BaseType;
 }
@@ -69,7 +70,8 @@ export type TeamType = {
 
 export type TeamMemberType = {
     id: string,
-    teamId: string,
+    team: TeamType,
+    name:string,
     employeeId: string,
     joinedAt: string,
     removedAt?: string,

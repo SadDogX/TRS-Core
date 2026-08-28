@@ -88,6 +88,18 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
       {
         where,
         include: {
+        teamMemberships:{
+          include:{
+            team:{
+              include:{
+                activeWork:true,
+                createdBy:true,
+                leader:true,
+              }
+            }
+          }
+        },
+          ledTeams:true,
           position: true,
           base: true
         },

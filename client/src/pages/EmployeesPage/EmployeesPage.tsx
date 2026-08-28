@@ -84,13 +84,13 @@ const EmployeesPage = () => {
                             showToast(TOAST_MSG.INFORMATION, MSG.ENTITY_WAS_HARD_DELETED(ENTITY.EMPLOYEE, selectedEmployee.fullName))
                         } catch (data: any) {
                             const dependencies = data.data
-                            const message= `Сотрудник ${selectedEmployee.fullName} не может быть удален, имеет следующие зависимости:\n
+                            const message = `Сотрудник ${selectedEmployee.fullName} не может быть удален, имеет следующие зависимости:\n
                             В бригаде:${dependencies.teamMember}
                             Бригадир:${dependencies.teamsAsLeader}
                             Создатель бригады:${dependencies.teamsAsCreator}
                             В работе:${dependencies.workAssignment}`
                             console.log(message)
-                            showToast(TOAST_MSG.ERROR, message||data.error)
+                            showToast(TOAST_MSG.ERROR, message || data.error)
                         }
                     }
                 }} >
@@ -98,34 +98,44 @@ const EmployeesPage = () => {
 
             <button type="button" className={style.fab} onClick={() => setModalOpen(true)}>+</button>
             <div className={style.gridCardsEmployees}>
-                {employees.map((employee) => (
-                    <div className={style.cardEmployee} key={employee.id} >
-                        <h3>{employee.fullName}</h3>
-                        <span>{employee.position.name}</span>
-                        <div className={style.cardFooter}>
-                            <div className={style.cardFooterIconList}>
-                                <button title="Заблокировать" onClick={async () => {
-                                    try {
-                                        await toggleLockEmployee(employee.id)
-                                        fetchEmployees()
-                                        showToast(TOAST_MSG.INFORMATION, (employee.isBlocked ? 'Разблокирован' : 'Заблокирован') + ' сотрудник :' + employee.fullName)
-                                    } catch (data: any) {
-                                        showToast(TOAST_MSG.ERROR, data.error)
-                                    }
-                                }}>
-                                    {employee.isBlocked ? <FiLock size={32}/> : <FiUnlock size={32} />}</button>
-                                <button title="Редактировать" onClick={() => {
-                                    setEditingEmployee(employee),
-                                        setModalOpen(true)
-                                }}><FiEdit size={32}/></button>
-                                <button title="Удалить" onClick={() => {
-                                    setSelectedEmployee(employee)
-                                    setConfirmOpen(true)
-                                }}><FiTrash2 size={32}/></button>
+                {employees.map((employee) => {
+                    const leader = employee.ledTeams[0]?.name
+                    console.log(leader);
+                    
+                    const memberTeam = employee.teamMemberships[0]?.team?.name
+                    return (
+
+                        <div className={style.cardEmployee} key={employee.id} style={{background:`${leader?'#77c4ffff':memberTeam?'#6bf468ff':''}`}}>
+                            <h3>{employee.fullName}</h3>
+                            <span>{employee.position.name}</span>
+                            <span>{
+                              leader|| memberTeam || "Не привязан"
+                            }</span>
+                            <div className={style.cardFooter}>
+                                <div className={style.cardFooterIconList}>
+                                    <button title="Заблокировать" onClick={async () => {
+                                        try {
+                                            await toggleLockEmployee(employee.id)
+                                            fetchEmployees()
+                                            showToast(TOAST_MSG.INFORMATION, (employee.isBlocked ? 'Разблокирован' : 'Заблокирован') + ' сотрудник :' + employee.fullName)
+                                        } catch (data: any) {
+                                            showToast(TOAST_MSG.ERROR, data.error)
+                                        }
+                                    }}>
+                                        {employee.isBlocked ? <FiLock size={32} /> : <FiUnlock size={32} />}</button>
+                                    <button title="Редактировать" onClick={() => {
+                                        setEditingEmployee(employee),
+                                            setModalOpen(true)
+                                    }}><FiEdit size={32} /></button>
+                                    <button title="Удалить" onClick={() => {
+                                        setSelectedEmployee(employee)
+                                        setConfirmOpen(true)
+                                    }}><FiTrash2 size={32} /></button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
 
         </div >

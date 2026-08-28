@@ -113,7 +113,7 @@ router.get('/:teamId/members', authenticate, requireRole(ROLES.ADMIN, ROLES.COOR
 /* --------------------------------- Update --------------------------------- */
 router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), async (req: Request, res: Response) => {
     try {
-
+        console.log(req.params.id)
         const target = await prisma.team.findUnique({
             where: { id: req.params.id }
         })
@@ -122,7 +122,7 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
             return res.status(400).json({ error: MSG.ENTITY_NOT_FOUND_ID(ENTITY.TEAM, req.params.id) })
         }
 
-        const { leaderId, status } = req.body
+        const { leaderId, status,name } = req.body
 
         const leader_data = await prisma.employee.findUnique({
             where: {
@@ -146,7 +146,7 @@ router.put('/:id', authenticate, requireRole(ROLES.ADMIN, ROLES.COORDINATOR), as
 
         const updat_target = await prisma.team.update({
             where: { id: req.params.id },
-            data: { leaderId, status }
+            data: { leaderId, status,name}
         })
 
         res.json({ message: MSG.ENTITY_WAS_UPDATED(ENTITY.TEAM, updat_target.id), data: updat_target })

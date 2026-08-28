@@ -60,6 +60,7 @@ const TeamForm = ({ onSuccess, initData }: TeamFormProps) => {
         try {
             let response;
             if (initData) {
+                console.log(initData.id)
                 response = await api.updateTeam(initData.id, data)
             } else {
                 if (!owner) return
